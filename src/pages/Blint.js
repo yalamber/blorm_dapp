@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import nlp from 'compromise';
 import predefinedColors from '../utils/predefinedColors.json';
 import styles from '../styles/Blint.module.css';
 import UploadToIPFS from '../components/UploadToIPFS.js'; // Import the UploadToIPFS component
