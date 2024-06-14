@@ -639,14 +639,6 @@
       42
     ]
   },
-  "azure (web)": {
-    "hex": "#F0FFFF",
-    "rgb": [
-      240,
-      255,
-      255
-    ]
-  },
   "baby blue": {
     "hex": "#89CFF0",
     "rgb": [
@@ -823,14 +815,6 @@
       197
     ]
   },
-  "chocolate (traditional)": {
-    "hex": "#7B3F00",
-    "rgb": [
-      123,
-      63,
-      0
-    ]
-  },
   "cobalt blue": {
     "hex": "#0047AB",
     "rgb": [
@@ -861,14 +845,6 @@
       255,
       253,
       208
-    ]
-  },
-  "cyan (process)": {
-    "hex": "#00B7EB",
-    "rgb": [
-      0,
-      183,
-      235
     ]
   },
   "dark cyan": {
@@ -1133,14 +1109,6 @@
       199,
       21,
       133
-    ]
-  },
-  "midnight green (eagle green)": {
-    "hex": "#004953",
-    "rgb": [
-      0,
-      73,
-      83
     ]
   },
   "moccasin": {
@@ -1669,14 +1637,6 @@
       227,
       66,
       52
-    ]
-  },
-  "violet (web)": {
-    "hex": "#EE82EE",
-    "rgb": [
-      238,
-      130,
-      238
     ]
   },
   "viridian": {
@@ -2927,14 +2887,6 @@
       146
     ]
   },
-  "royal blue (dark)": {
-    "hex": "#002366",
-    "rgb": [
-      0,
-      35,
-      102
-    ]
-  },
   "russian green": {
     "hex": "#679267",
     "rgb": [
@@ -3045,14 +2997,6 @@
       0,
       158,
       96
-    ]
-  },
-  "shocking pink (crayola)": {
-    "hex": "#FF6FFF",
-    "rgb": [
-      255,
-      111,
-      255
     ]
   },
   "sizzling red": {
@@ -3189,14 +3133,6 @@
       0,
       105,
       148
-    ]
-  },
-  "tan (crayola)": {
-    "hex": "#D99A6C",
-    "rgb": [
-      217,
-      154,
-      108
     ]
   },
   "tangerine yellow": {
@@ -3405,14 +3341,6 @@
       86,
       136,
       125
-    ]
-  },
-  "yellow-green (Crayola)": {
-    "hex": "#C5E384",
-    "rgb": [
-      197,
-      227,
-      132
     ]
   },
   "zomp": {
