@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import frames from '../utils/ascii_frames.json'; // Adjust the path as necessary
+import frames from '../utils/ascii_frames_with_blorm.json'; // Adjust the path as necessary
 import styles from '../styles/Home.module.css';
 import { Link } from 'react-router-dom';
 
@@ -25,7 +25,7 @@ const Home = () => {
         const containerWidth = containerRef.current.clientWidth;
         // const containerHeight = containerRef.current.clientHeight;
         // const aspectRatio = containerHeight / containerWidth;
-        const fontSize = containerWidth / 100; // Adjust this value for font size
+        const fontSize = containerWidth / 500; // Adjust this value for font size
         setFontSize(fontSize);
         const width = Math.floor(containerWidth / fontSize);
         // const height = Math.floor(containerHeight / fontSize / aspectRatio);
@@ -64,7 +64,7 @@ const Home = () => {
         </pre>
       </div>
       <div className={styles.titleContainer}>
-        <h1 className={styles.title}>B L O R M</h1>
+        {/*<h1 className={styles.title}>B L O R M</h1>*/}
       </div>
       <Link to="/blint">
         <button className={styles.blintButton}>
