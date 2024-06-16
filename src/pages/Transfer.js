@@ -19,17 +19,20 @@ function Transfer() {
   const [error, setError] = useState(null);
   const [web3, setWeb3] = useState(null);
 
-  useEffect(() => {
-    if (window.ethereum) {
-      const web3Instance = new Web3(window.ethereum);
-      setWeb3(web3Instance);
-      window.ethereum.request({ method: 'eth_requestAccounts' })
-        .then(accounts => console.log(`Connected account: ${accounts[0]}`))
-        .catch(err => console.error(err));
-    } else {
-      console.error("MetaMask is not installed");
+const handleConnectWallet = async () => {
+  if (window.ethereum) {
+    const web3Instance = new Web3(window.ethereum);
+    setWeb3(web3Instance);
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      console.log(`Connected account: ${accounts[0]}`);
+    } catch (err) {
+      console.error(err);
     }
-  }, []);
+  } else {
+    console.error("MetaMask is not installed");
+  }
+};
 
   const buildOptions = () => {
     const GAS_LIMIT = 60000;
@@ -82,6 +85,7 @@ function Transfer() {
   return (
     <div className="container">
       <h1>OFT Transfer</h1>
+      <button onClick={handleConnectWallet}>Connect to MetaMask</button>
       <form onSubmit={handleQuoteSend}>
         <div>
           <label>Contract Address:</label>
