@@ -14,7 +14,7 @@ contract TokenOApp is OFT {
         address _delegate,
         uint256 _initialSupply,
         uint256 _mintingFee
-    ) OFT(_name, _symbol, _lzEndpoint, _delegate) Ownable(_delegate) {
+    ) OFT(_name, _symbol, _lzEndpoint, _delegate) Ownable() {
         _mint(_delegate, _initialSupply);
         mintingFee = _mintingFee;
     }

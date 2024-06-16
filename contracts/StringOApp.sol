@@ -5,7 +5,7 @@ import { OApp, Origin, MessagingFee } from "@layerzerolabs/lz-evm-oapp-v2/contra
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract StringOApp is Ownable, OApp {
-    constructor(address _endpoint, address _owner) OApp(_endpoint, _owner) Ownable(_owner) {}
+    constructor(address _endpoint, address _owner) OApp(_endpoint, _owner) Ownable() {}
 
     // Some arbitrary data you want to deliver to the destination chain!
     string public data;

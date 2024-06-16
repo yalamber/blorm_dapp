@@ -1,24 +1,25 @@
-import React from "react";
-import PropTypes from 'prop-types';
-
-
-const UploadToIPFS = ({ base64String }) => {
-  const handleUpload = async () => {
+const UploadToIPFS = async (data, isMetadata = false) => {
     try {
       const formData = new FormData();
-      const blob = await fetch(base64String).then(res => res.blob());
-      formData.append("file", blob, "image.png");
-
+  
+      if (isMetadata) {
+        const blob = new Blob([data], { type: 'application/json' });
+        formData.append('file', blob, 'metadata.json');
+      } else {
+        const blob = await fetch(data).then(res => res.blob());
+        formData.append('file', blob, 'image.png');
+      }
+  
       const metadata = JSON.stringify({
-        name: "Image upload"
+        name: isMetadata ? "Metadata upload" : "Image upload"
       });
-      formData.append("pinataMetadata", metadata);
-
+      formData.append('pinataMetadata', metadata);
+  
       const options = JSON.stringify({
         cidVersion: 0
       });
-      formData.append("pinataOptions", options);
-
+      formData.append('pinataOptions', options);
+  
       const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
         method: "POST",
         headers: {
@@ -26,23 +27,14 @@ const UploadToIPFS = ({ base64String }) => {
         },
         body: formData,
       });
-
+  
       const resData = await res.json();
-      console.log(resData);
+      console.log("IPFS response:", resData);
+      return `https://gateway.pinata.cloud/ipfs/${resData.IpfsHash}`;
     } catch (error) {
       console.error("Error uploading to IPFS: ", error);
     }
   };
-
-  return (
-    <div>
-      <button onClick={handleUpload}>Upload to IPFS</button>
-    </div>
-  );
-};
-
-UploadToIPFS.propTypes = {
-    base64String: PropTypes.string.isRequired,
-  };
-
-export default UploadToIPFS;
+  
+  export default UploadToIPFS;
+  

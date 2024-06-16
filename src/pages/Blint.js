@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import predefinedColors from '../utils/predefinedColors.json';
 import styles from '../styles/Blint.module.css';
-import UploadToIPFS from '../components/UploadToIPFS.js'; // Import the UploadToIPFS component
+import UploadToIPFS from '../components/UploadToIPFS.js';
+import { checkBase64Exists, addBase64ToFirestore } from '../utils/firestoreUtils.js';
+import { mintToken } from '../utils/blockchainUtils.js';
+import TokenURIFetcher from '../components/TokenURIFetcher.js';
+import BlopABI from '../utils/BlopABI.json';
 
 const layers = [
     { id: 'layer1', label: 'Layer 1 (background)', type: 'gradient' },
@@ -10,13 +14,11 @@ const layers = [
     { id: 'layer5', label: 'Layer 5 (top)', src: '/5-top.png' },
 ];
 
-// Convert hex color to RGB array
 const hexToRgb = (hex) => {
     const bigint = parseInt(hex.slice(1), 16);
     return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
 };
 
-// Calculate Euclidean distance between two RGB colors
 const colorDistance = (rgb1, rgb2) => {
     return Math.sqrt(
         Math.pow(rgb1[0] - rgb2[0], 2) +
@@ -25,13 +27,10 @@ const colorDistance = (rgb1, rgb2) => {
     );
 };
 
-// Utility function to clamp values between 0 and 255
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-// Utility function to generate a random integer within a range
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-// Function to sample a random color within ±10 RGB values
 const sampleRandomShade = (rgb) => {
     return [
         clamp(rgb[0] + getRandomInt(-10, 10), 0, 255),
@@ -40,19 +39,15 @@ const sampleRandomShade = (rgb) => {
     ];
 };
 
-// Convert RGB array to hex color
 const rgbArrayToHex = (rgb) => {
     return `#${rgb.map(x => x.toString(16).padStart(2, '0')).join('')}`;
 };
 
-// Find the closest matching color
 const getClosestColor = (inputColor) => {
     if (!inputColor) return rgbArrayToHex([255, 255, 255]);
 
-    // Use regex to extract color-related terms, considering multi-word colors
     const colorTerms = inputColor.match(/\b(?:\w+ ?)+\b/g);
 
-    // Check for exact matches first
     for (const term of colorTerms) {
         const lowerTerm = term.trim().toLowerCase();
         if (lowerTerm in predefinedColors) {
@@ -62,7 +57,6 @@ const getClosestColor = (inputColor) => {
         }
     }
 
-    // If no exact match found, perform Euclidean distance search
     let closestColor = { name: null, distance: Infinity };
 
     for (const [name, color] of Object.entries(predefinedColors)) {
@@ -93,6 +87,9 @@ const Blint = () => {
     const [gradientPlaceholder2, setGradientPlaceholder2] = useState('');
     const canvasRef = useRef(null);
     const [canvasDataURL, setCanvasDataURL] = useState('');
+    const [uploadUrl, setUploadUrl] = useState('');
+    const [checkResult, setCheckResult] = useState('');
+    const [addResult, setAddResult] = useState('');
 
     useEffect(() => {
         const randomPlaceholderColor = () => {
@@ -131,16 +128,57 @@ const Blint = () => {
         }));
     };
 
+    const [metadata, setMetadata] = useState({});
+    const [starCount, setStarCount] = useState(0);
+    const [recipientAddress, setRecipientAddress] = useState('0x0c778e66efa266b5011c552C4A7BDA63Ad24C37B');
+
+    const updateMetadata = () => {
+        const newMetadata = {
+            name: `BLOP`, // Increment this based on your logic
+            description: `BLOP. The first algorithmic art collection curated by Blorm.`,
+            image: '', // This will be set after uploading to IPFS
+            attributes: [
+                {
+                    trait_type: 'Primary Color',
+                    value: gradientColors.primary
+                },
+                {
+                    trait_type: 'Secondary Color',
+                    value: gradientColors.secondary
+                },
+                {
+                    trait_type: 'Background Color',
+                    value: backgroundColor
+                },
+                {
+                    trait_type: 'Stars',
+                    value: starCount
+                },
+                {
+                    trait_type: 'Edition',
+                    value: 'Common' // Increment this based on your logic
+                }
+            ],
+            creator: 'Blorm',
+            motto: 'Form Blockchain Information',
+            collection: 'BLOP',
+            external_url: 'https://blorm.xyz'
+        };
+        setMetadata(newMetadata);
+    };
+
+    useEffect(() => {
+        updateMetadata();
+    }, [backgroundColor, gradientColors, starCount]);
+
     const loadImage = (src) => {
         return new Promise((resolve, reject) => {
             const img = new Image();
-            img.crossOrigin = 'anonymous'; // Handle CORS if images are hosted externally
+            img.crossOrigin = 'anonymous';
             img.onload = () => {
-                console.log(`Image loaded: ${src}`);
                 resolve(img);
             };
             img.onerror = () => {
-                console.error(`Failed to load image: ${src}`);
                 reject(new Error(`Failed to load image: ${src}`));
             };
             img.src = src;
@@ -181,7 +219,7 @@ const Blint = () => {
 
         for (let i = 0; i < data.length; i += 4) {
             const alpha = data[i + 3];
-            if (alpha === 0) continue; // Skip transparent pixels
+            if (alpha === 0) continue;
 
             const grayscale = data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11;
             const t = grayscale / 255;
@@ -195,19 +233,20 @@ const Blint = () => {
     };
 
     const drawStars = (ctx) => {
-        const starCount = getRandomInt(1, 5);
+        const count = getRandomInt(1, 5);
+        setStarCount(count);
         const starImage = new Image();
-        starImage.src = '/whitestar2.png'; // Use the uploaded star image
+        starImage.src = '/whitestar2.png';
         starImage.onload = () => {
-            for (let i = 0; i < starCount; i++) {
+            for (let i = 0; i < count; i++) {
                 const x = getRandomInt(0, ctx.canvas.width);
                 const y = getRandomInt(0, ctx.canvas.height);
                 const angle = getRandomInt(0, 360);
-                const size = getRandomInt(50, 100); // Adjust the min and max values as needed for star sizes
+                const size = getRandomInt(50, 100);
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate((angle * Math.PI) / 180);
-                ctx.drawImage(starImage, -size / 2, -size / 2, size, size); // Adjusted to include width and height
+                ctx.drawImage(starImage, -size / 2, -size / 2, size, size);
                 ctx.restore();
             }
         };
@@ -221,13 +260,11 @@ const Blint = () => {
 
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-        // Create a separate canvas for each layer
         const offscreenCanvas = document.createElement('canvas');
         offscreenCanvas.width = ctx.canvas.width;
         offscreenCanvas.height = ctx.canvas.height;
         const offscreenCtx = offscreenCanvas.getContext('2d');
 
-        // Draw the gradient for the background layer
         const { primaryColor: bgPrimaryColor, secondaryColor: bgSecondaryColor } = generateGradientColors(backgroundColor);
         const gradient = offscreenCtx.createLinearGradient(0, 0, offscreenCanvas.width, offscreenCanvas.height);
         gradient.addColorStop(0, bgPrimaryColor);
@@ -236,22 +273,19 @@ const Blint = () => {
         offscreenCtx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
         ctx.drawImage(offscreenCanvas, 0, 0);
 
-        // Draw and apply gradient maps to other layers
-        for (const layer of layers.slice(1)) { // Skip the background layer
-            if (!visibility[layer.id]) continue; // Skip layers that are not visible
+        for (const layer of layers.slice(1)) {
+            if (!visibility[layer.id]) continue;
             try {
                 const img = await loadImage(layer.src);
                 offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
                 offscreenCtx.drawImage(img, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
                 let adjustedImageData;
                 if (layer.id === 'layer2' || layer.id === 'layer4') {
-                    // Apply primary gradient to layers 2 and 4
                     const imageData = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
                     const { primaryColor, secondaryColor } = generateGradientColors(gradientColors.primary);
                     adjustedImageData = applyGradientMap(imageData, primaryColor, secondaryColor);
                     offscreenCtx.putImageData(adjustedImageData, 0, 0);
                 } else if (layer.id === 'layer5') {
-                    // Apply secondary gradient to layer 5
                     const imageData = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
                     const { primaryColor, secondaryColor } = generateGradientColors(gradientColors.secondary);
                     adjustedImageData = applyGradientMap(imageData, primaryColor, secondaryColor);
@@ -263,10 +297,7 @@ const Blint = () => {
             }
         }
 
-        // Draw stars on the canvas
         drawStars(ctx);
-
-        // Update the canvas data URL
         setCanvasDataURL(canvas.toDataURL('image/png'));
     };
 
@@ -314,6 +345,49 @@ const Blint = () => {
         });
     }, []);
 
+    const handleCheckBase64 = async () => {
+        try {
+            const exists = await checkBase64Exists(canvasDataURL);
+            setCheckResult(exists ? 'Base64 string exists in Firestore.' : 'No matching Base64 string found in Firestore.');
+        } catch (error) {
+            console.error("Error during base64 existence check:", error);
+            setCheckResult('Error checking base64 existence.');
+        }
+    };
+
+    const handleAddBase64 = async () => {
+        try {
+            const result = await addBase64ToFirestore(canvasDataURL);
+            setAddResult(result.message);
+        } catch (error) {
+            console.error("Error during base64 addition:", error);
+            setAddResult('Error adding base64 to Firestore.');
+        }
+    };
+
+    const handleUploadToIPFS = async () => {
+        try {
+            const url = await UploadToIPFS(canvasDataURL);
+            setUploadUrl(url);
+        } catch (error) {
+            console.error("Error uploading to IPFS:", error);
+        }
+    };
+
+    const handleUploadAndMint = async () => {
+        try {
+            const uri = await UploadToIPFS(canvasDataURL);
+            const updatedMetadata = { ...metadata, image: uri };
+    
+            // Replace 'recipientAddress' with the actual recipient address
+            await mintToken(updatedMetadata, recipientAddress);
+        } catch (error) {
+            console.error('Error uploading and minting:', error);
+        }
+    };
+    
+
+
     return (
         <div className={styles.container}>
             <div className={styles.titleContainer}>
@@ -355,7 +429,20 @@ const Blint = () => {
                 </p>
             </div>
             <canvas ref={canvasRef} width={500} height={500} />
-            {canvasDataURL && <UploadToIPFS base64String={canvasDataURL} />} {/* Pass the canvas data URL */}
+            <button onClick={handleCheckBase64}>Check Base64 in Firestore</button>
+            <button onClick={handleAddBase64}>Add Base64 to Firestore</button>
+            <p>{checkResult}</p>
+            <p>{addResult}</p>
+            <button onClick={handleUploadToIPFS}>Upload to IPFS</button>
+            {uploadUrl && <p>Uploaded to IPFS: <a href={uploadUrl} target="_blank" rel="noopener noreferrer">{uploadUrl}</a></p>}
+            <input
+                type="text"
+                value={recipientAddress}
+                onChange={(e) => setRecipientAddress(e.target.value)}
+                placeholder="Recipient Address"
+            />
+            <button onClick={handleUploadAndMint}>Upload to IPFS & Mint</button>
+            <TokenURIFetcher contractAddress={"0x0A52E83AE87406bC5171e5fc1e057996e43b274C"} contractABI={BlopABI.abi} />
         </div>
     );
 };

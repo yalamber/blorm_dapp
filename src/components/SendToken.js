@@ -1,94 +1,82 @@
 import React, { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import Web3 from 'web3';
 import ABI from './ABI.json';
-import { Web3 } from "web3";
 const CONTRACT_ABI = ABI.abi;
 
 const SendTokens = () => {
-    const [provider, setProvider] = useState(null);
-    const [signer, setSigner] = useState(null);
+    const [web3, setWeb3] = useState(null);
     const [contract, setContract] = useState(null);
     const [destAddress, setDestAddress] = useState('');
     const [sourceAddress, setSourceAddress] = useState('');
-
-    let web3 = new Web3(Web3.givenProvider);
+    const [quote, setQuote] = useState(null);
 
     useEffect(() => {
-        const initializeEthers = async () => {
-            if (window.ethereum) {
-                const ethersProvider = new ethers.BrowserProvider(window.ethereum);
-                const ethersSigner = await ethersProvider.getSigner();
-
-                setProvider(ethersProvider);
-                setSigner(ethersSigner);
-            } else {
-                console.error("Ethereum provider not found");
-            }
-        };
-
-        initializeEthers();
+        if (window.ethereum) {
+            const web3Instance = new Web3(window.ethereum);
+            setWeb3(web3Instance);
+            window.ethereum.enable().catch(error => {
+                console.error("User denied account access");
+            });
+        } else {
+            console.error("Ethereum provider not found");
+        }
     }, []);
 
     useEffect(() => {
-        if (signer && sourceAddress) {
-            const ethersContract = new ethers.Contract(sourceAddress, CONTRACT_ABI, signer);
-            setContract(ethersContract);
-            console.log("Contract initialized:", ethersContract);
+        if (web3 && sourceAddress) {
+            const contractInstance = new web3.eth.Contract(CONTRACT_ABI, sourceAddress);
+            setContract(contractInstance);
+            console.log("Contract initialized:", contractInstance);
         }
-    }, [signer, sourceAddress]);
+    }, [web3, sourceAddress]);
 
-    const sendTokens = async () => {
+    const getQuote = async () => {
         if (!contract) {
             console.error("Contract is not initialized");
             return;
         }
-
-        const fee = {
-            nativeFee: ethers.parseUnits("0.01", 18), // Replace with actual native fee
-            lzTokenFee: ethers.parseUnits("0.01", 18) // Replace with actual LayerZero token fee
-        };
-
-        const recipientAddress = destAddress;
-
-        // Convert the address to bytes32
-        const recipientAddressBytes32 = ethers.zeroPadValue(recipientAddress, 32);
-        // const recipientAddressBytes32 = web3.utils.padLeft(recipientAddress, 32, 0);
-        console.log(ethers.isAddress(recipientAddressBytes32));
-        console.log("Recipient address in bytes32:", recipientAddressBytes32);
-
+    
+        if (!destAddress || !web3.utils.isAddress(destAddress)) {
+            console.error("Invalid destination address");
+            return;
+        }
+    
+        const recipientAddressBytes32 = web3.utils.padLeft(web3.utils.toHex(destAddress), 64);
+        const dstEid = 40245;  // Destination endpoint ID
+        const amountLD = web3.utils.toWei("0.05", "ether");  // Amount in local decimals
+        const minAmountLD = web3.utils.toWei("0.01", "ether");  // Minimum amount in local decimals
+        const extraOptions = "0x0003010011010000000000000000000000000000c350";  // Example placeholder, ensure correct format
+        const composeMsg = web3.utils.hexToBytes("0x");  // Example placeholder, ensure correct format
+        const oftCmd = web3.utils.hexToBytes("0x");  // Example placeholder, ensure correct format
+    
         const sendParam = {
-            dstEid: 40245, // Replace with actual destination endpoint ID
-            to: recipientAddressBytes32, // Replace with actual recipient address
-            amountToSendLD: ethers.parseEther("0.05"), // Replace with actual amount
-            minAmountToCreditLD: ethers.parseEther("0.01"), // Replace with actual minimum amount
-            extraOptions: new Uint8Array(0),
-            composeMsg: new Uint8Array(0),
-            oftCmd: new Uint8Array(0)
+            dstEid: dstEid,
+            to: recipientAddressBytes32,
+            amountLD: amountLD,
+            minAmountLD: minAmountLD,
+            extraOptions: extraOptions,
+            composeMsg: composeMsg,
+            oftCmd: oftCmd
         };
-
-        console.log('Sending transaction with params:', sendParam);
-
+    
+        // Log parameters for debugging
+        console.log("sendParam:", sendParam);
+    
         try {
-            const tx = await contract.quoteSend(
-                sendParam,
-                "0x", // Assuming no extra options, replace if necessary
-                false, // Assuming you are paying in LZ token
-                "0x", // Assuming no composed message, replace if necessary
-                "0x",
-            );
-            console.log("Transaction sent:", tx);
-            const receipt = await tx.wait();
-            console.log("Transaction receipt:", receipt);
+            const feeEstimate = await contract.methods.quoteSend(sendParam, false).call();
+            setQuote(feeEstimate);
+            console.log("Fee estimate:", feeEstimate);
         } catch (error) {
-            console.error("Error sending transaction:", error);
+            console.error("Error getting quote:", error);
         }
     };
+    
 
     return (
         <div>
             <h2>Send Tokens</h2>
             <div>
-                <label>Source Address: </label>
+                <label>Source Address (Contract): </label>
                 <input
                     type="text"
                     value={sourceAddress}
@@ -96,14 +84,21 @@ const SendTokens = () => {
                 />
             </div>
             <div>
-                <label>Destination Address: </label>
+                <label>Destination Address (Wallet): </label>
                 <input
                     type="text"
                     value={destAddress}
                     onChange={(e) => setDestAddress(e.target.value)}
                 />
             </div>
-            <button onClick={sendTokens}>Send</button>
+            <button onClick={getQuote}>Get Quote</button>
+            {quote && (
+                <div>
+                    <p>Estimated Fee:</p>
+                    <p>Native Fee: {web3.utils.fromWei(quote.nativeFee, 'ether')} ETH</p>
+                    <p>LayerZero Token Fee: {web3.utils.fromWei(quote.lzTokenFee, 'ether')} LZ</p>
+                </div>
+            )}
         </div>
     );
 };
