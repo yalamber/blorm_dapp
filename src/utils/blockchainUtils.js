@@ -2,13 +2,13 @@ import { ethers } from 'ethers';
 import Blop from './BlopABI.json';
 import UploadToIPFS from '../components/UploadToIPFS';
 
-const provider = new ethers.BrowserProvider(window.ethereum);
-const signer = await provider.getSigner();
 const contractAddress = '0x0A52E83AE87406bC5171e5fc1e057996e43b274C'; // Replace with your contract address
-const contract = new ethers.Contract(contractAddress, Blop.abi, signer);
 
 export const mintToken = async (metadata, recipientAddress) => {
     try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, Blop.abi, signer);
         // Upload metadata to IPFS and get the URI
         const metadataURI = await UploadToIPFS(JSON.stringify(metadata), true);
     
