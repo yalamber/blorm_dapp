@@ -7,7 +7,7 @@ def read_ascii_text(file_path):
         return file.read()
 
 # Function to convert image to ASCII
-def image_to_ascii(image, width=1000):
+def image_to_ascii(image, width=192*4):
     gray_image = image.convert("L")
     height = int((gray_image.height / gray_image.width) * width)
     resized_image = gray_image.resize((width, height))

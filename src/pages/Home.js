@@ -25,7 +25,7 @@ const Home = () => {
         const containerWidth = containerRef.current.clientWidth;
         // const containerHeight = containerRef.current.clientHeight;
         // const aspectRatio = containerHeight / containerWidth;
-        const fontSize = containerWidth / 500; // Adjust this value for font size
+        const fontSize = containerWidth / 375; // Adjust this value for font size
         setFontSize(fontSize);
         const width = Math.floor(containerWidth / fontSize);
         // const height = Math.floor(containerHeight / fontSize / aspectRatio);
