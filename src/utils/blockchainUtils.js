@@ -35,7 +35,8 @@ export const mintToken = async (metadata, recipientAddress) => {
             throw new Error('TokenMinted event not found');
         }
 
-        console.log('Token minted event:', tokenMintedEvent.args);
+        console.log('Token minted event:', tokenMintedEvent.args.tokenId.toString());
+        return tokenMintedEvent.args.tokenId;
     } catch (error) {
         console.error('Error minting token:', error);
     }

@@ -6,6 +6,7 @@ import { checkBase64Exists, addBase64ToFirestore } from '../utils/firestoreUtils
 import { mintToken } from '../utils/blockchainUtils.js';
 import TokenURIFetcher from '../components/TokenURIFetcher.js';
 import BlopABI from '../utils/BlopABI.json';
+import Navbar from '../components/Navbar.js';
 
 const layers = [
     { id: 'layer1', label: 'Layer 1 (background)', type: 'gradient' },
@@ -72,6 +73,9 @@ const getClosestColor = (inputColor) => {
 };
 
 const Blint = () => {
+    const [tokenUrl, setTokenUrl] = useState('');
+    const [error, setError] = useState('');
+
     const [backgroundColor, setBackgroundColor] = useState('');
     const [gradientColors, setGradientColors] = useState({
         primary: '',
@@ -130,7 +134,7 @@ const Blint = () => {
 
     const [metadata, setMetadata] = useState({});
     const [starCount, setStarCount] = useState(0);
-    const [recipientAddress, setRecipientAddress] = useState('0x0c778e66efa266b5011c552C4A7BDA63Ad24C37B');
+    const [recipientAddress, setRecipientAddress] = useState('');
 
     const updateMetadata = () => {
         const newMetadata = {
@@ -376,20 +380,43 @@ const Blint = () => {
 
     const handleUploadAndMint = async () => {
         try {
+            setTokenUrl('Loading...');
+            const exists = await checkBase64Exists(canvasDataURL);
+            if (exists) {
+                setError('Error: This base64 string already exists in Firestore.');
+                return;
+            }
+    
+            const addResult = await addBase64ToFirestore(canvasDataURL);
+            if (!addResult.success) {
+                setError('Error: Failed to add base64 string to Firestore.');
+                return;
+            }
+    
             const uri = await UploadToIPFS(canvasDataURL);
             const updatedMetadata = { ...metadata, image: uri };
     
-            // Replace 'recipientAddress' with the actual recipient address
-            await mintToken(updatedMetadata, recipientAddress);
+            const tokenId = await mintToken(updatedMetadata, recipientAddress);
+            if (!tokenId) {
+                setError('Error: Failed to get token ID.');
+                return;
+            }
+    
+            const tokenAddress = "0x0A52E83AE87406bC5171e5fc1e057996e43b274C"; // Use your contract address
+            const url = `https://testnets.opensea.io/assets/base-sepolia/${tokenAddress}/${tokenId}`;
+            setTokenUrl(url);
+    
         } catch (error) {
             console.error('Error uploading and minting:', error);
+            setError('Error uploading and minting. Please try again.');
         }
     };
     
-
+    
 
     return (
         <div className={styles.container}>
+            <Navbar />
             <div className={styles.titleContainer}>
                 <h1 className={styles.title}>B L I N T</h1>
             </div>
@@ -429,12 +456,17 @@ const Blint = () => {
                 </p>
             </div>
             <canvas ref={canvasRef} width={500} height={500} />
-            <button onClick={handleCheckBase64}>Check Base64 in Firestore</button>
-            <button onClick={handleAddBase64}>Add Base64 to Firestore</button>
+
             <p>{checkResult}</p>
             <p>{addResult}</p>
-            <button onClick={handleUploadToIPFS}>Upload to IPFS</button>
+            {/* <button onClick={handleUploadToIPFS}>Upload to IPFS</button> 
+                <button onClick={handleCheckBase64}>Check Base64 in Firestore</button>
+                <button onClick={handleAddBase64}>Add Base64 to Firestore</button>
+                <TokenURIFetcher contractAddress={"0x0A52E83AE87406bC5171e5fc1e057996e43b274C"} contractABI={BlopABI.abi} />
+            */}
             {uploadUrl && <p>Uploaded to IPFS: <a href={uploadUrl} target="_blank" rel="noopener noreferrer">{uploadUrl}</a></p>}
+            BASE SEPOLIA ONLY <br />
+            Recipient Address:
             <input
                 type="text"
                 value={recipientAddress}
@@ -442,7 +474,8 @@ const Blint = () => {
                 placeholder="Recipient Address"
             />
             <button onClick={handleUploadAndMint}>Upload to IPFS & Mint</button>
-            <TokenURIFetcher contractAddress={"0x0A52E83AE87406bC5171e5fc1e057996e43b274C"} contractABI={BlopABI.abi} />
+            {tokenUrl && <p>View your token on OpenSea: <a href={tokenUrl} target="_blank" rel="noopener noreferrer">{tokenUrl}</a></p>}
+            {error && <p className={styles.error}>{error}</p>}
         </div>
     );
 };
