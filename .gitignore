@@ -6,6 +6,7 @@
 /cache
 /artifacts
 /ignition/deployments
+/python/venv
 
 # dependencies
 /node_modules
