@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import * as tf from '@tensorflow/tfjs';
+import * as use from '@tensorflow-models/universal-sentence-encoder';
 import predefinedColors from '../utils/predefinedColors.json';
 import styles from '../styles/Blint.module.css';
 import UploadToIPFS from '../components/UploadToIPFS.js';
@@ -44,35 +46,74 @@ const rgbArrayToHex = (rgb) => {
     return `#${rgb.map(x => x.toString(16).padStart(2, '0')).join('')}`;
 };
 
-const getClosestColor = (inputColor) => {
-    if (!inputColor) return rgbArrayToHex([255, 255, 255]);
 
-    const colorTerms = inputColor.match(/\b(?:\w+ ?)+\b/g);
 
-    for (const term of colorTerms) {
-        const lowerTerm = term.trim().toLowerCase();
-        if (lowerTerm in predefinedColors) {
-            const colorRgb = predefinedColors[lowerTerm].rgb;
+
+
+const Blint = () => {
+    const [colorEmbeddings, setColorEmbeddings] = useState({});
+    const [model, setModel] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadModelAndGenerateEmbeddings = async () => {
+            const loadedModel = await use.load();
+            setModel(loadedModel);
+    
+            const colorNames = Object.keys(predefinedColors);
+            const embeddings = {};
+    
+            const embeddingsArray = await loadedModel.embed(colorNames);
+    
+            colorNames.forEach((colorName, index) => {
+                embeddings[colorName] = embeddingsArray.slice([index, 0], [1]);
+            });
+    
+            setColorEmbeddings(embeddings);
+            setLoading(false);  // Set loading to false after embeddings are generated
+        };
+    
+        loadModelAndGenerateEmbeddings();
+    }, []);
+    
+    
+    const getClosestColor = async (inputColor) => {
+        if (!inputColor || !model || !Object.keys(colorEmbeddings).length) {
+            return rgbArrayToHex([255, 255, 255]);  // Default color if no match found
+        }
+    
+        // Check if the color exists in the predefined colors JSON
+        if (predefinedColors[inputColor]) {
+            const colorRgb = predefinedColors[inputColor].rgb;
             const randomShade = sampleRandomShade(colorRgb);
             return rgbArrayToHex(randomShade);
         }
-    }
-
-    let closestColor = { name: null, distance: Infinity };
-
-    for (const [name, color] of Object.entries(predefinedColors)) {
-        const distance = colorDistance(hexToRgb(predefinedColors[name].hex), hexToRgb(inputColor));
-        if (distance < closestColor.distance) {
-            closestColor = { name, distance };
+    
+        // If the color doesn't exist, find the closest match
+        const inputEmbedding = await model.embed([inputColor]);
+        let minDistance = Infinity;
+        let bestMatch = null;
+    
+        for (const [name, embedding] of Object.entries(colorEmbeddings)) {
+            const distance = tf.losses.cosineDistance(inputEmbedding, embedding, 0).dataSync()[0];
+    
+            if (distance < minDistance) {
+                minDistance = distance;
+                bestMatch = name;
+            }
         }
-    }
+    
+        if (bestMatch) {
+            const colorRgb = predefinedColors[bestMatch].rgb;
+            const randomShade = sampleRandomShade(colorRgb);
+            return rgbArrayToHex(randomShade);
+        }
+    
+        return rgbArrayToHex([255, 255, 255]);  // Default color if no match found
+    };
+    
 
-    const colorRgb = predefinedColors[closestColor.name].rgb;
-    const randomShade = sampleRandomShade(colorRgb);
-    return rgbArrayToHex(randomShade);
-};
 
-const Blint = () => {
     const [tokenUrl, setTokenUrl] = useState('');
     const [error, setError] = useState('');
 
@@ -106,12 +147,13 @@ const Blint = () => {
         setGradientPlaceholder2(randomPlaceholderColor());
     }, []);
 
-    const handleChangeBackgroundColor = (color) => {
-        setBackgroundColor(getClosestColor(color));
+    const handleChangeBackgroundColor = async (color) => {
+        const closestColor = await getClosestColor(color);
+        setBackgroundColor(closestColor);
     };
-
-    const handleChangeGradientColor = (type, color) => {
-        const closestColor = getClosestColor(color);
+    
+    const handleChangeGradientColor = async (type, color) => {
+        const closestColor = await getClosestColor(color);
         if (type === 'primary') {
             setGradientColors((prevColors) => ({
                 ...prevColors,
@@ -123,7 +165,8 @@ const Blint = () => {
                 secondary: closestColor,
             }));
         }
-    };
+    };    
+    
 
     const toggleVisibility = (layerId) => {
         setVisibility((prevVisibility) => ({
@@ -386,33 +429,33 @@ const Blint = () => {
                 setError('Error: This base64 string already exists in Firestore.');
                 return;
             }
-    
+
             const addResult = await addBase64ToFirestore(canvasDataURL);
             if (!addResult.success) {
                 setError('Error: Failed to add base64 string to Firestore.');
                 return;
             }
-    
+
             const uri = await UploadToIPFS(canvasDataURL);
             const updatedMetadata = { ...metadata, image: uri };
-    
+
             const tokenId = await mintToken(updatedMetadata, recipientAddress);
             if (!tokenId) {
                 setError('Error: Failed to get token ID.');
                 return;
             }
-    
+
             const tokenAddress = "0x0A52E83AE87406bC5171e5fc1e057996e43b274C"; // Use your contract address
             const url = `https://testnets.opensea.io/assets/base-sepolia/${tokenAddress}/${tokenId}`;
             setTokenUrl(url);
-    
+
         } catch (error) {
             console.error('Error uploading and minting:', error);
             setError('Error uploading and minting. Please try again.');
         }
     };
-    
-    
+
+
 
     return (
         <div className={styles.container}>
@@ -476,8 +519,12 @@ const Blint = () => {
             <button onClick={handleUploadAndMint}>Upload to IPFS & Mint</button>
             {tokenUrl && <p>View your token on OpenSea: <a href={tokenUrl} target="_blank" rel="noopener noreferrer">{tokenUrl}</a></p>}
             {error && <p className={styles.error}>{error}</p>}
+            {loading ? <div className={styles.loading}>Loading...</div> : null}
         </div>
     );
 };
 
 export default Blint;
+    
+
+    
