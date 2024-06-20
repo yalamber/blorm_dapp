@@ -8,8 +8,8 @@ import { checkBase64Exists, addBase64ToFirestore } from '../utils/firestoreUtils
 import { mintToken } from '../utils/blockchainUtils.js';
 import TokenURIFetcher from '../components/TokenURIFetcher.js';
 import BlopABI from '../utils/BlopABI.json';
-import Navbar from '../components/Navbar.js';
 import FuzzySet from 'fuzzyset.js';
+import { Link } from 'react-router-dom';
 
 const layers = [
     { id: 'layer1', label: 'Layer 1 (background)', type: 'gradient' },
@@ -55,65 +55,60 @@ const Blint = () => {
         if (!inputColor) {
             return rgbArrayToHex([255, 255, 255]);  // Default color if no input
         }
-    
+
         // Check if the color exists in the predefined colors JSON
         if (predefinedColors[inputColor]) {
             const colorRgb = predefinedColors[inputColor].rgb;
             const randomShade = sampleRandomShade(colorRgb);
             return rgbArrayToHex(randomShade);
         }
-    
+
         // Implement typo correction using FuzzySet
         const fuzzyColors = FuzzySet(Object.keys(predefinedColors));
         const fuzzyResult = fuzzyColors.get(inputColor);
         if (fuzzyResult && fuzzyResult[0][0] > 0.7) { // Adjust threshold as needed
             inputColor = fuzzyResult[0][1];
         }
-    
+
         // If the color doesn't exist, find the closest match
-        if (typeof inputColor === 'string') {
+        if (inputColor && typeof inputColor === 'string') {
             const inputEmbeddingArray = colorEmbeddings[inputColor];
-    
-            // Log the shape of inputEmbeddingArray
-            console.log('Shape of inputEmbeddingArray:', inputEmbeddingArray.length);
-    
+
             let minDistance = Infinity;
             let bestMatch = null;
             for (const [name, embedding] of Object.entries(colorEmbeddings)) {
-                // Log the shape of the current embedding
-                console.log(`Shape of embedding for ${name}:`, embedding.length);
-    
-                // Ensure the shapes are compatible before subtraction
-                if (inputEmbeddingArray.length !== embedding.length) {
-                    console.error(`Shape mismatch: inputEmbeddingArray has shape ${inputEmbeddingArray.length}, but embedding for ${name} has shape ${embedding.length}`);
-                    continue;
-                }
-    
-                const inputTensor = tf.tensor(inputEmbeddingArray, [1, 768]);
-                const embeddingTensor = tf.tensor(embedding, [1, 768]);
-                
-                const distance = tf.norm(tf.sub(inputTensor, embeddingTensor)).dataSync()[0];
+                if (Array.isArray(inputEmbeddingArray) && Array.isArray(embedding)) {
+                    // Ensure the shapes are compatible before subtraction
+                    if (inputEmbeddingArray.length === embedding.length) {
+                        try {
+                            const inputTensor = tf.tensor(inputEmbeddingArray);
+                            const embeddingTensor = tf.tensor(embedding);
 
-                inputTensor.dispose(); // Dispose of the input tensor
-                embeddingTensor.dispose(); // Dispose of the embedding tensor
-    
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    bestMatch = name;
+                            const distance = tf.norm(tf.sub(inputTensor, embeddingTensor)).dataSync()[0];
+
+                            inputTensor.dispose(); // Dispose of the input tensor
+                            embeddingTensor.dispose(); // Dispose of the embedding tensor
+
+                            if (distance < minDistance) {
+                                minDistance = distance;
+                                bestMatch = name;
+                            }
+                        } catch (error) {
+                            console.error("Error comparing embeddings:", error);
+                        }
+                    }
                 }
-                
             }
-    
+
             if (bestMatch) {
                 const colorRgb = predefinedColors[bestMatch].rgb;
                 const randomShade = sampleRandomShade(colorRgb);
                 return rgbArrayToHex(randomShade);
             }
         }
-    
+
         return rgbArrayToHex([255, 255, 255]);  // Default color if no match found
     };
-
 
     const [tokenUrl, setTokenUrl] = useState('');
     const [error, setError] = useState('');
@@ -167,9 +162,6 @@ const Blint = () => {
             }));
         }
     };
-
-
-
 
     const toggleVisibility = (layerId) => {
         setVisibility((prevVisibility) => ({
@@ -311,7 +303,6 @@ const Blint = () => {
             return;
         }
 
-        setLoading(true);
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         const offscreenCanvas = document.createElement('canvas');
@@ -353,7 +344,6 @@ const Blint = () => {
 
         drawStars(ctx);
         setCanvasDataURL(canvas.toDataURL('image/png'));
-        setLoading(false);
     };
 
     useEffect(() => {
@@ -363,7 +353,7 @@ const Blint = () => {
             const ctx = canvas.getContext('2d');
             renderLayers(ctx);
         }
-    }, [backgroundColor, gradientColors, visibility]);    
+    }, [backgroundColor, gradientColors, visibility]);
 
     const setInputWidth = (input) => {
         const placeholderText = input.placeholder;
@@ -431,16 +421,13 @@ const Blint = () => {
     };
 
     const handleUploadAndMint = async () => {
-        if (!recipientAddress) {
-            setError('Error: Recipient address is required.');
-            return;
-        }
-        else if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor) {
+        if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor) {
             setError('Error: Please fill in all colors.');
             return;
 
         }
         try {
+            setLoading(true);
             setTokenUrl('Loading...');
             const exists = await checkBase64Exists(canvasDataURL);
             if (exists) {
@@ -456,29 +443,31 @@ const Blint = () => {
 
             const uri = await UploadToIPFS(canvasDataURL);
             const updatedMetadata = { ...metadata, image: uri };
+            setMetadata(updatedMetadata);
 
-            const tokenId = await mintToken(updatedMetadata, recipientAddress);
+            const tokenId = await mintToken(updatedMetadata);
             if (!tokenId) {
                 setError('Error: Failed to get token ID.');
                 return;
             }
 
-            const tokenAddress = "0x0A52E83AE87406bC5171e5fc1e057996e43b274C"; // Use your contract address
+            const tokenAddress = "0x323f3D06f9c1aC17c0F504FBA1dd598fAdD28ea2"; // Use your contract address
             const url = `https://testnets.opensea.io/assets/base-sepolia/${tokenAddress}/${tokenId}`;
             setTokenUrl(url);
-
+            setLoading(false);
         } catch (error) {
+            setLoading(false);
             console.error('Error uploading and minting:', error);
             setError('Error uploading and minting. Please try again.');
         }
     };
 
-
+    const testOptions = ['Option 1', 'Option 2', 'Option 3'];
 
     return (
         <div className={styles.container}>
+            <Link to="/"><img src="/logo.png" alt="BLORM LOGO" className={styles.logo} /></Link>
             {loading ? <div className={styles.loading}>Loading . . .</div> : null}
-            <Navbar />
             <div className={styles.titleContainer}>
                 <h1 className={styles.title}>B L I N T</h1>
             </div>
@@ -517,7 +506,26 @@ const Blint = () => {
                     /> background.
                 </p>
             </div>
-            <canvas ref={canvasRef} width={500} height={500} />
+            <div className={styles.canvasContainer}>
+                <canvas ref={canvasRef} width={500} height={500} />
+            </div>
+
+            <div className={styles.chainSelectMintButtonContainer}>
+                <div className={styles.chainSelectContainer}>
+                    <select className={styles.chainSelect} defaultValue="">
+                        <option value="" disabled>Select Chain</option>
+                        {testOptions.map((option, index) => (
+                            <option key={index} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className={styles.mintButtonContainer}>
+                    <button className={styles.mintButton} onClick={handleUploadAndMint}>Mint</button>
+                </div>
+            </div>
+
 
             <p>{checkResult}</p>
             <p>{addResult}</p>
@@ -527,15 +535,7 @@ const Blint = () => {
                 <TokenURIFetcher contractAddress={"0x0A52E83AE87406bC5171e5fc1e057996e43b274C"} contractABI={BlopABI.abi} />
             */}
             {uploadUrl && <p>Uploaded to IPFS: <a href={uploadUrl} target="_blank" rel="noopener noreferrer">{uploadUrl}</a></p>}
-            BASE SEPOLIA ONLY <br />
-            Recipient Address:
-            <input
-                type="text"
-                value={recipientAddress}
-                onChange={(e) => setRecipientAddress(e.target.value)}
-                placeholder="Recipient Address"
-            />
-            <button onClick={handleUploadAndMint}>Upload to IPFS & Mint</button>
+
             {tokenUrl && <p>View your token on OpenSea: <a href={tokenUrl} target="_blank" rel="noopener noreferrer">{tokenUrl}</a></p>}
             {error && <p className={styles.error}>{error}</p>}
         </div>
