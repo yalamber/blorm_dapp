@@ -1,37 +1,107 @@
 import { ethers } from 'ethers';
-import Blop from './BlopABI.json';
+import Blop from './Blop4.json';
 import UploadToIPFS from './UploadToIPFS';
+const chainListUrl = 'https://chainid.network/chains.json';
 
-const contractAddress = '0x323f3D06f9c1aC17c0F504FBA1dd598fAdD28ea2'; // Replace with your contract address
+const fetchChainData = async () => {
+    try {
+        const response = await fetch(chainListUrl);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching chain data:', error);
+        throw error;
+    }
+};
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const mintToken = async (metadata) => {
+export const mintToken = async (metadata, selectedChain) => {
+    const chainData = await fetchChainData();
+    const chainInfo = chainData.find(chain => chain.chainId === selectedChain.chainID);
+    if (!chainInfo) {
+        throw new Error(`Chain with ID ${selectedChain.chainID} not found`);
+    }
+
+    const contractAddress = selectedChain.contractAddress;
+    const chainParams = {
+        chainId: ethers.toQuantity(chainInfo.chainId),
+        chainName: chainInfo.name,
+        nativeCurrency: chainInfo.nativeCurrency,
+        rpcUrls: chainInfo.rpc,
+        blockExplorerUrls: chainInfo.explorers.map(explorer => explorer.url),
+    };
+
     try {
+        if (!window.ethereum) {
+            throw new Error("Metamask is not installed");
+        }
+
+        try {
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: chainParams.chainId }],
+            });
+        } catch (switchError) {
+            if (switchError.code === 4902) {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [chainParams],
+                    });
+                } catch (addError) {
+                    throw new Error("Failed to add the chain to MetaMask");
+                }
+            } else {
+                throw new Error("Failed to switch to the specified chain");
+            }
+        }
+
         const provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
         const signer = await provider.getSigner();
         const recipientAddress = await signer.getAddress();
         const contract = new ethers.Contract(contractAddress, Blop.abi, signer);
 
-        // Upload metadata to IPFS and get the URI
-        const metadataURI = await UploadToIPFS(JSON.stringify(metadata), true);
+        if (!ethers.isAddress(recipientAddress)) {
+            throw new Error("Invalid recipient address");
+        }
 
-        // Mint the token to the recipient address and set the token URI in one transaction
-        const transaction = await contract.mintAndSetTokenURI(recipientAddress, metadataURI);
+        const metadataURI = await UploadToIPFS(JSON.stringify(metadata), true);
+        console.log('Metadata URI:', metadataURI);
+
+        const mintFee = ethers.parseUnits("0.001", "ether");
+        
+        const gasEstimate = await contract.mint.estimateGas(recipientAddress, metadataURI, {
+            value: mintFee,
+        });
+
+        const gasPrice = (await provider.getFeeData()).gasPrice
+
+        // console.log('Gas estimate:', gasEstimate.toString());
+
+        const overrides = {
+            gasPrice: gasPrice, // 10 Gwei
+            gasLimit: gasEstimate, // Gas limit
+        };
+
+        const transaction = await contract.mint(recipientAddress, metadataURI, {
+            value: mintFee,
+            // ...overrides
+        });
         const receipt = await transaction.wait();
 
         console.log('Transaction receipt:', receipt);
 
-        const txHash = receipt.hash;
+        const txHash = receipt.transactionHash;
 
-        // ABI Interface to decode the logs
         const iface = new ethers.Interface(Blop.abi);
 
-        // Manually decode the logs
         const tokenMintedEvent = receipt.logs.map(log => {
             try {
                 return iface.parseLog(log);
             } catch (e) {
+                console.log('Log parsing error:', e);
                 return null;
             }
         }).find(event => event && event.name === 'TokenMinted');
@@ -43,10 +113,8 @@ export const mintToken = async (metadata) => {
             console.error('TokenMinted event not found in logs:', receipt.logs);
             console.log('Attempting to fetch latest minted token ID from contract');
 
-            // Wait for a while before attempting to fetch the latest minted token ID
-            await delay(5000); // Adjust the delay time as needed
+            await delay(5000);
 
-            // Fetch the latest minted token ID
             const latestTokenId = await contract.latestTokenMinted(recipientAddress);
             if (latestTokenId) {
                 console.log('Latest minted token ID:', latestTokenId.toString());
@@ -57,6 +125,6 @@ export const mintToken = async (metadata) => {
         }
     } catch (error) {
         console.error('Error minting token:', error);
-        throw error; // Re-throw the error to handle it outside of this function if needed
+        throw error;
     }
 };

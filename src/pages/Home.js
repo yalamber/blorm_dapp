@@ -67,7 +67,7 @@ const Home = () => {
         {/*<h1 className={styles.title}>B L O R M</h1>*/}
       </div>
       <Link to="/blint">
-        <button className={styles.blintButton}>
+        <button className={styles.actionButton}>
           B L I N T →
         </button>
       </Link>

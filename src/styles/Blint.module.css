@@ -44,12 +44,12 @@
     border: none;
     background: none;
     outline: none;
-    padding: 0 5px;
+    padding: 0 5px 0 5px;
     overflow: hidden;
     white-space: nowrap;
     color: rgba(0, 0, 0, 0.7);
     width: auto; /* Adjust width automatically */
-    min-width: 100px; /* Minimum width */
+    min-width: 80px; /* Minimum width */
     box-sizing: content-box; /* Ensure padding is not counted in width */
     caret-color: rgba(0, 0, 0, 0.7);
 }
