@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as tf from '@tensorflow/tfjs';
-import * as use from '@tensorflow-models/universal-sentence-encoder';
 import predefinedColors from '../utils/predefinedColors.json';
+import colorEmbeddings from '../utils/colorEmbeddings.json';
 import styles from '../styles/Blint.module.css';
 import UploadToIPFS from '../components/UploadToIPFS.js';
 import { checkBase64Exists, addBase64ToFirestore } from '../utils/firestoreUtils.js';
@@ -9,6 +9,7 @@ import { mintToken } from '../utils/blockchainUtils.js';
 import TokenURIFetcher from '../components/TokenURIFetcher.js';
 import BlopABI from '../utils/BlopABI.json';
 import Navbar from '../components/Navbar.js';
+import FuzzySet from 'fuzzyset.js';
 
 const layers = [
     { id: 'layer1', label: 'Layer 1 (background)', type: 'gradient' },
@@ -46,40 +47,13 @@ const rgbArrayToHex = (rgb) => {
     return `#${rgb.map(x => x.toString(16).padStart(2, '0')).join('')}`;
 };
 
-
-
-
-
 const Blint = () => {
-    const [colorEmbeddings, setColorEmbeddings] = useState({});
-    const [model, setModel] = useState(null);
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const loadModelAndGenerateEmbeddings = async () => {
-            const loadedModel = await use.load();
-            setModel(loadedModel);
-    
-            const colorNames = Object.keys(predefinedColors);
-            const embeddings = {};
-    
-            const embeddingsArray = await loadedModel.embed(colorNames);
-    
-            colorNames.forEach((colorName, index) => {
-                embeddings[colorName] = embeddingsArray.slice([index, 0], [1]);
-            });
-    
-            setColorEmbeddings(embeddings);
-            setLoading(false);  // Set loading to false after embeddings are generated
-        };
-    
-        loadModelAndGenerateEmbeddings();
-    }, []);
-    
-    
+    const [loading, setLoading] = useState(false);
+
     const getClosestColor = async (inputColor) => {
-        if (!inputColor || !model || !Object.keys(colorEmbeddings).length) {
-            return rgbArrayToHex([255, 255, 255]);  // Default color if no match found
+        if (!inputColor) {
+            return rgbArrayToHex([255, 255, 255]);  // Default color if no input
         }
     
         // Check if the color exists in the predefined colors JSON
@@ -89,29 +63,56 @@ const Blint = () => {
             return rgbArrayToHex(randomShade);
         }
     
-        // If the color doesn't exist, find the closest match
-        const inputEmbedding = await model.embed([inputColor]);
-        let minDistance = Infinity;
-        let bestMatch = null;
-    
-        for (const [name, embedding] of Object.entries(colorEmbeddings)) {
-            const distance = tf.losses.cosineDistance(inputEmbedding, embedding, 0).dataSync()[0];
-    
-            if (distance < minDistance) {
-                minDistance = distance;
-                bestMatch = name;
-            }
+        // Implement typo correction using FuzzySet
+        const fuzzyColors = FuzzySet(Object.keys(predefinedColors));
+        const fuzzyResult = fuzzyColors.get(inputColor);
+        if (fuzzyResult && fuzzyResult[0][0] > 0.7) { // Adjust threshold as needed
+            inputColor = fuzzyResult[0][1];
         }
     
-        if (bestMatch) {
-            const colorRgb = predefinedColors[bestMatch].rgb;
-            const randomShade = sampleRandomShade(colorRgb);
-            return rgbArrayToHex(randomShade);
+        // If the color doesn't exist, find the closest match
+        if (typeof inputColor === 'string') {
+            const inputEmbeddingArray = colorEmbeddings[inputColor];
+    
+            // Log the shape of inputEmbeddingArray
+            console.log('Shape of inputEmbeddingArray:', inputEmbeddingArray.length);
+    
+            let minDistance = Infinity;
+            let bestMatch = null;
+            for (const [name, embedding] of Object.entries(colorEmbeddings)) {
+                // Log the shape of the current embedding
+                console.log(`Shape of embedding for ${name}:`, embedding.length);
+    
+                // Ensure the shapes are compatible before subtraction
+                if (inputEmbeddingArray.length !== embedding.length) {
+                    console.error(`Shape mismatch: inputEmbeddingArray has shape ${inputEmbeddingArray.length}, but embedding for ${name} has shape ${embedding.length}`);
+                    continue;
+                }
+    
+                const inputTensor = tf.tensor(inputEmbeddingArray, [1, 768]);
+                const embeddingTensor = tf.tensor(embedding, [1, 768]);
+                
+                const distance = tf.norm(tf.sub(inputTensor, embeddingTensor)).dataSync()[0];
+
+                inputTensor.dispose(); // Dispose of the input tensor
+                embeddingTensor.dispose(); // Dispose of the embedding tensor
+    
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestMatch = name;
+                }
+                
+            }
+    
+            if (bestMatch) {
+                const colorRgb = predefinedColors[bestMatch].rgb;
+                const randomShade = sampleRandomShade(colorRgb);
+                return rgbArrayToHex(randomShade);
+            }
         }
     
         return rgbArrayToHex([255, 255, 255]);  // Default color if no match found
     };
-    
 
 
     const [tokenUrl, setTokenUrl] = useState('');
@@ -151,7 +152,7 @@ const Blint = () => {
         const closestColor = await getClosestColor(color);
         setBackgroundColor(closestColor);
     };
-    
+
     const handleChangeGradientColor = async (type, color) => {
         const closestColor = await getClosestColor(color);
         if (type === 'primary') {
@@ -165,8 +166,10 @@ const Blint = () => {
                 secondary: closestColor,
             }));
         }
-    };    
-    
+    };
+
+
+
 
     const toggleVisibility = (layerId) => {
         setVisibility((prevVisibility) => ({
@@ -303,8 +306,12 @@ const Blint = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        if (!backgroundColor || !gradientColors.primary || !gradientColors.secondary) return;
+        if (!backgroundColor || !gradientColors.primary || !gradientColors.secondary) {
+            console.error('Missing color values for rendering layers');
+            return;
+        }
 
+        setLoading(true);
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         const offscreenCanvas = document.createElement('canvas');
@@ -346,15 +353,17 @@ const Blint = () => {
 
         drawStars(ctx);
         setCanvasDataURL(canvas.toDataURL('image/png'));
+        setLoading(false);
     };
 
     useEffect(() => {
+        if (!backgroundColor || !gradientColors.primary || !gradientColors.secondary) return;
         const canvas = canvasRef.current;
         if (canvas) {
             const ctx = canvas.getContext('2d');
             renderLayers(ctx);
         }
-    }, [backgroundColor, gradientColors, visibility]);
+    }, [backgroundColor, gradientColors, visibility]);    
 
     const setInputWidth = (input) => {
         const placeholderText = input.placeholder;
@@ -422,6 +431,15 @@ const Blint = () => {
     };
 
     const handleUploadAndMint = async () => {
+        if (!recipientAddress) {
+            setError('Error: Recipient address is required.');
+            return;
+        }
+        else if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor) {
+            setError('Error: Please fill in all colors.');
+            return;
+
+        }
         try {
             setTokenUrl('Loading...');
             const exists = await checkBase64Exists(canvasDataURL);
@@ -459,6 +477,7 @@ const Blint = () => {
 
     return (
         <div className={styles.container}>
+            {loading ? <div className={styles.loading}>Loading . . .</div> : null}
             <Navbar />
             <div className={styles.titleContainer}>
                 <h1 className={styles.title}>B L I N T</h1>
@@ -519,12 +538,10 @@ const Blint = () => {
             <button onClick={handleUploadAndMint}>Upload to IPFS & Mint</button>
             {tokenUrl && <p>View your token on OpenSea: <a href={tokenUrl} target="_blank" rel="noopener noreferrer">{tokenUrl}</a></p>}
             {error && <p className={styles.error}>{error}</p>}
-            {loading ? <div className={styles.loading}>Loading...</div> : null}
         </div>
     );
 };
 
 export default Blint;
-    
 
-    
+

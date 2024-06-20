@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import Blop from './BlopABI.json';
 import UploadToIPFS from '../components/UploadToIPFS';
 
-const contractAddress = '0x0A52E83AE87406bC5171e5fc1e057996e43b274C'; // Replace with your contract address
+const contractAddress = '0xF26A1486195BD4a5825c42F920747368041c9e50'; // '0x0A52E83AE87406bC5171e5fc1e057996e43b274C'; // Replace with your contract address
 
 export const mintToken = async (metadata, recipientAddress) => {
     try {

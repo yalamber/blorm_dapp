@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Web3 from 'web3';
+import { ethers } from 'ethers';
 import OFT20ABI from './ABI.json';
 import { Options } from '@layerzerolabs/lz-v2-utilities';
 
@@ -17,22 +17,27 @@ function Transfer() {
   const [payInLzToken, setPayInLzToken] = useState(false);
   const [quoteResult, setQuoteResult] = useState(null);
   const [error, setError] = useState(null);
-  const [web3, setWeb3] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const [signer, setSigner] = useState(null);
 
-const handleConnectWallet = async () => {
-  if (window.ethereum) {
-    const web3Instance = new Web3(window.ethereum);
-    setWeb3(web3Instance);
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      console.log(`Connected account: ${accounts[0]}`);
-    } catch (err) {
-      console.error(err);
+  const handleConnectWallet = async () => {
+    if (window.ethereum) {
+      const browserProvider = new ethers.BrowserProvider(window.ethereum);
+      setProvider(browserProvider);
+      const signer = await browserProvider.getSigner();
+      setSigner(signer);
+      try {
+        const accounts = await signer.getAddress();
+        console.log(`Connected account: ${accounts}`);
+      } catch (err) {
+        console.error('Error connecting to MetaMask:', err);
+        setError('Failed to connect to MetaMask');
+      }
+    } else {
+      console.error("MetaMask is not installed");
+      setError("MetaMask is not installed");
     }
-  } else {
-    console.error("MetaMask is not installed");
-  }
-};
+  };
 
   const buildOptions = () => {
     const GAS_LIMIT = 60000;
@@ -40,44 +45,40 @@ const handleConnectWallet = async () => {
 
     // Initialize options using the Options SDK
     const options = Options.newOptions().addExecutorLzReceiveOption(GAS_LIMIT, MSG_VALUE);
-    return options.toHex();
+    return options.toBytes();
   };
 
   const handleQuoteSend = async (e) => {
     e.preventDefault();
-    if (!web3) {
+    if (!signer) {
       setError('Web3 is not initialized. Ensure MetaMask is installed and connected.');
       return;
     }
 
     try {
-      const contract = new web3.eth.Contract(oft20abi, contractAddress);
-      const extraOptions = buildOptions();
+      const contract = new ethers.Contract(contractAddress, oft20abi, signer);
+      const extraOptionsBytes = buildOptions();
       const sendParam = {
         dstEid: parseInt(eid),
-        to: web3.utils.padLeft(web3.utils.toHex(peerAddress), 64),
-        amountLD: web3.utils.toWei(amountLD.toString(), 'gwei'),
-        minAmountLD: web3.utils.toWei(minAmountLD.toString(), 'gwei'),
-        extraOptions: web3.utils.toHex(extraOptions),
-        composeMsg: web3.utils.toHex(composeMsg),
-        oftCmd: web3.utils.toHex(oftCmd)
+        to: ethers.zeroPadValue(peerAddress, 32),
+        amountLD: ethers.parseUnits(amountLD.toString(), 9),
+        minAmountLD: ethers.parseUnits(minAmountLD.toString(), 9),
+        extraOptions: extraOptionsBytes,
+        composeMsg: ethers.hexlify(ethers.getBytes(new TextEncoder().encode(composeMsg))),
+        oftCmd: ethers.hexlify(ethers.getBytes(new TextEncoder().encode(oftCmd)))
       };
 
       console.log('sendParam:', sendParam);
       console.log('payInLzToken:', payInLzToken);
 
-      const result = await contract.methods.quoteSend(
-        sendParam,
-        payInLzToken
-      ).call();
-
+      const result = await contract.quoteSend(sendParam, false);
       console.log('quoteSend result:', result);
 
       setQuoteResult(result);
       setError(null);
     } catch (err) {
       console.error('Error calling quoteSend:', err);
-      setError(err.message);
+      setError(`Error calling quoteSend: ${err.message}`);
       setQuoteResult(null);
     }
   };
@@ -169,8 +170,8 @@ const handleConnectWallet = async () => {
       {quoteResult && (
         <div>
           <h2>Quote Result:</h2>
-          <p>Native Fee: {quoteResult.nativeFee}</p>
-          <p>LZ Token Fee: {quoteResult.lzTokenFee}</p>
+          <p>Native Fee: {quoteResult.nativeFee.toString()}</p>
+          <p>LZ Token Fee: {quoteResult.lzTokenFee.toString()}</p>
         </div>
       )}
       {error && (
