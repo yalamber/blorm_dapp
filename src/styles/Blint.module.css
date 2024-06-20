@@ -1,12 +1,23 @@
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
 .container {
     display: flex;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
     flex-direction: column;
     font-family: "Chakra Petch", sans-serif;
-}
+    background: linear-gradient(45deg, #ff9a9e, #fad0c4, #fad0c4, #fcb69f, #f6d365, #fda085, #84fab0, #8fd3f4, #a6c0fe, #c4e0e5);
+    background-size: 200% 200%;
+    animation: gradientAnimation 15s ease infinite;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
 
 .loading {
     width: 100vw;
@@ -14,7 +25,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    background : rgba(0,0,0,0.3);
+    background : rgba(0,0,0,0.7);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -27,10 +38,11 @@
     width: 100%;
     height: fit-content;
     text-align: center;
+    margin-top: 4vh;
 }
 
 .title {
-    font-size: 2rem;
+    font-size: 4.20rem;
     margin-bottom: 1rem;
 }
 
@@ -40,6 +52,8 @@
     flex-wrap: wrap;
     gap: 5px;
     font-size: 1.5rem;
+    margin-top: 5vh;
+    font-weight: bold;
 }
 
 .input {
@@ -55,4 +69,106 @@
     overflow: hidden;
     white-space: nowrap;
     text-align: center;
+}
+
+.input::placeholder {
+    font-weight: normal;
+    color: rgba(0, 0, 0, 0.2);
+}
+
+.logo {
+    width: 70px;
+    height: 75px;
+    margin-bottom: 1rem;
+    position: fixed;
+    top: 2vh;
+    left: 1.75vw;
+    z-index: 100;
+}
+
+.canvasContainer {
+    width: fit-content;
+    height: fit-content;
+    margin-top: 5vh;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+}
+
+.chainSelectMintButtonContainer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5vh;
+    width: 25vw;
+    align-items: center;
+}
+
+.chainSelectContainer{
+    width: 50%;
+}
+
+.chainSelect {
+    font-family: "Chakra Petch", sans-serif;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    background: white;
+    color: #36395A;
+    font-weight: bold;
+    border-radius: 10px;
+    width: 100%;
+    outline: none;
+    cursor: pointer;
+    border: white 5px solid;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+}
+
+.mintButtonContainer {
+    width: 30%;
+}
+
+.mintButton {
+  align-items: center;
+  appearance: none;
+  background-color: #FCFCFD;
+  border-radius: 15px;
+  border-width: 0;
+  box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px,rgba(45, 35, 66, 0.3) 0 7px 13px -3px,#D6D6E7 0 -3px 0 inset;
+  box-sizing: border-box;
+  color: #36395A;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Chakra Petch",monospace;
+  height: 48px;
+  justify-content: center;
+  line-height: 1;
+  list-style: none;
+  overflow: hidden;
+  padding-left: 16px;
+  padding-right: 16px;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transition: box-shadow .15s,transform .15s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+  will-change: box-shadow,transform;
+  font-size: 18px;
+  font-weight: bold;
+  width: 100%;
+}
+
+.mintButton:focus, .chainSelect:focus {
+  box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+}
+
+.mintButton:hover, .chainSelect:hover {
+  box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+  transform: translateY(-2px);
+}
+
+.mintButton:active, .chainSelect:active{
+  box-shadow: #D6D6E7 0 3px 7px inset;
+  transform: translateY(2px);
 }
