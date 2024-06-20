@@ -1,0 +1,12 @@
+.image-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  .row {
+    display: flex;
+    justify-content: center;
+  }
+  

@@ -1,37 +1,64 @@
-/* Navbar.css */
-
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem; /* Adjust padding as needed */
-  background-color: #333;
-  color: #fff;
+  padding-left: 2rem;
+  padding-right: 1rem;
+  background-color: #fff; /* Change background to white */
+  color: #000; /* Change text color to black */
   width: 100%;
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1000; /* Ensure the navbar is on top */
+  z-index: 1000;
+  border-bottom: 1px solid #ccc; /* Add a bottom border */
+  height: 7vh;
+  box-sizing: border-box;
 }
 
-.navbar-logo a {
-  text-decoration: none;
-  color: #fff;
-  font-size: 1.5rem;
-  font-weight: bold;
+.navbarLogo {
+  display: flex;
+  align-items: center;
+  height: 100%; /* Ensures it spans the full height of the navbar */
+  flex-direction: row;
+}
+
+.logoText {
+  font-size: 1.5rem; /* Adjust font size */
+  font-family: 'Chakra Petch', sans-serif; /* Change to a similar font */
+  text-transform: uppercase; /* Make text uppercase */
+  color: #000; /* Change text color to black */
+  font-weight: bold; /* Add bold font weight */
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.logoImage {
+  height: 40px; /* Adjust size as needed */
+  margin-right: 1rem; /* Space between logo and text */
 }
 
 .navbar-links {
   display: flex;
-  gap: 1rem; /* Adds space between links */
+  gap: 2rem; /* Adjust space between links */
 }
 
 .navbar-links a {
   text-decoration: none;
-  color: #fff;
-  font-size: 1rem;
+  color: #000; /* Change text color to black */
+  font-size: 1.2rem; /* Adjust font size */
+  font-family: 'Arial', sans-serif; /* Change to a similar font */
+  text-transform: uppercase; /* Make text uppercase */
 }
 
 .navbar-links a:hover {
   text-decoration: underline;
+}
+
+.logoLink {
+  width: auto;
+  height: 3vh;
+  margin-right: 3vw;
 }
