@@ -7,12 +7,12 @@ import UploadToIPFS from '../utils/UploadToIPFS.js';
 import { checkBase64Exists, addBase64ToFirestore } from '../utils/firestoreUtils.js';
 import { mintToken } from '../utils/blockchainUtils.js';
 import TokenURIFetcher from '../components/TokenURIFetcher.js';
-import BlopABI from '../utils/BlopABI.json';
 import FuzzySet from 'fuzzyset.js';
 import { Link } from 'react-router-dom';
 import BlintCongrats from '../components/BlintCongrats.js';
 import OpepenGrid from '../components/OpepenGrid.js';
 import Navbar from '../components/Navbar.js';
+import blintChains from '../utils/blintChains.json';
 
 
 const layers = [
@@ -168,15 +168,14 @@ const Blint = () => {
         tempSpan.style.fontFamily = getComputedStyle(input).fontFamily;
         if (input.value) {
             tempSpan.textContent = input.value;
-        }
-        else {
+        } else {
             tempSpan.textContent = input.placeholder;
         }
 
         document.body.appendChild(tempSpan);
         const width = tempSpan.getBoundingClientRect().width;
         document.body.removeChild(tempSpan);
-        input.style.width = `${width}px`;
+        input.style.width = `${width + 20}px`; // Added 10 pixels to the calculated width
         input.style.marginRight = '0.5rem';
     };
 
@@ -184,6 +183,7 @@ const Blint = () => {
         const input = event.target;
         adjustInputWidth(input);
     };
+
 
     const handleInputBlur = (event, callback) => {
         const input = event.target;
@@ -403,37 +403,24 @@ const Blint = () => {
         }
     };
 
-    const setInputWidth = (input) => {
-        const placeholderText = input.placeholder;
-        const tempSpan = document.createElement('span');
-        tempSpan.style.visibility = 'hidden';
-        tempSpan.style.fontSize = getComputedStyle(input).fontSize;
-        tempSpan.style.fontFamily = getComputedStyle(input).fontFamily;
-        tempSpan.textContent = placeholderText;
-
-        document.body.appendChild(tempSpan);
-        const placeholderWidth = tempSpan.getBoundingClientRect().width;
-        document.body.removeChild(tempSpan);
-
-        input.style.width = `${Math.max(input.scrollWidth, placeholderWidth)}px`;
-    };
-
-    const handleResize = (event) => {
-        const input = event.target;
-        input.style.width = '1px';
-        setInputWidth(input);
-    };
 
     const [successTxHash, setSuccessTxHash] = useState('');
     const [successTokenId, setSuccessTokenId] = useState('');
     const [openseaURL, setOpenseaURL] = useState('');
+    const [selectedChain, setSelectedChain] = useState('');
+
+    const handleChainSelection = (event) => {
+        const chainID = event.target.value;
+        const selectedChainObject = blintChains[chainID];
+        setSelectedChain(selectedChainObject);
+    };
 
     const handleUploadAndMint = async () => {
-        if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor) {
-            setError('Error: Please fill in all colors.');
+        if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor || !selectedChain) {
+            setError('Error: Please fill in all colors and select a chain.');
             return;
-
         }
+
         try {
             setLoading(true);
             setTokenUrl('Loading...');
@@ -447,11 +434,11 @@ const Blint = () => {
             const updatedMetadata = { ...metadata, image: uri };
             setMetadata(updatedMetadata);
 
-            const txResponse = await mintToken(updatedMetadata);
+            const txResponse = await mintToken(updatedMetadata, selectedChain);
             const tokenId = txResponse[0];
             const txHash = txResponse[1];
             setSuccessTxHash(txHash);
-            if (!tokenId) {
+            if (tokenId === undefined) {
                 setError('Error: Failed to get token ID.');
                 return;
             }
@@ -464,15 +451,14 @@ const Blint = () => {
                 return;
             }
 
-            const tokenAddress = "0x323f3D06f9c1aC17c0F504FBA1dd598fAdD28ea2"; // Use your contract address
-            const url = `https://testnets.opensea.io/assets/base-sepolia/${tokenAddress}/${tokenId}`;
+            const url = `https://testnets.opensea.io/assets/base-sepolia/${selectedChain.contractAddress}/${tokenId}`;
             setOpenseaURL(url);
             setTokenUrl(url);
             setLoading(false);
             setShowCongrats(true);
         } catch (error) {
             setLoading(false);
-            console.error('Error uploading and minting:', error);
+            console.error(' g and minting:', error);
             setError('Error uploading and minting. Please try again.');
         }
     };
@@ -487,7 +473,7 @@ const Blint = () => {
             <Navbar />
             {OpepenGridTop}
             {loading ? <div className={styles.loading}>Loading . . .</div> : null}
-            {showCongrats ? <BlintCongrats txHash={successTxHash} tokenId={successTokenId} openseaURL={openseaURL} />:
+            {showCongrats ? <BlintCongrats txHash={successTxHash} tokenId={successTokenId} openseaURL={openseaURL} /> :
                 <div className={styles.middleContainer}>
                     <div className={styles.sentence}>
                         <div>
@@ -529,11 +515,15 @@ const Blint = () => {
                         </div>
                         <div>
                             <span>on </span>
-                            <select className={styles.chainSelect} defaultValue="">
-                                <option value="" disabled>Select Chain</option>
-                                {testOptions.map((option, index) => (
-                                    <option key={index} value={option}>
-                                        {option}
+                            <select
+                                value={selectedChain ? selectedChain.chainID : ''}
+                                onChange={handleChainSelection}
+                                className={styles.chainSelect}
+                            >
+                                <option value="">Select Chain</option>
+                                {Object.entries(blintChains).map(([chainID, chain]) => (
+                                    <option key={chainID} value={chainID}>
+                                        {chain.name}
                                     </option>
                                 ))}
                             </select>
@@ -544,25 +534,20 @@ const Blint = () => {
                             <canvas ref={canvasRef} width={400} height={400} />
                         </div>
                         <div className={styles.buttonsContainer}>
-                        <div className={styles.generateButtonContainer}>
-                            <button className={styles.actionButton} onClick={renderCanvas}>Generate</button>
+                            <div className={styles.generateButtonContainer}>
+                                <button className={styles.actionButton} onClick={renderCanvas}>Generate</button>
+                            </div>
+                            <div className={styles.mintButtonContainer}>
+                                <button className={styles.actionButton} onClick={handleUploadAndMint}>Mint</button>
+                            </div>
                         </div>
-                        <div className={styles.mintButtonContainer}>
-                            <button className={styles.actionButton} onClick={handleUploadAndMint}>Mint</button>
-                        </div>
-                    </div>
                     </div>
 
-                    
+
 
 
                     <p>{checkResult}</p>
                     <p>{addResult}</p>
-                    {/* <button onClick={handleUploadToIPFS}>Upload to IPFS</button> 
-                <button onClick={handleCheckBase64}>Check Base64 in Firestore</button>
-                <button onClick={handleAddBase64}>Add Base64 to Firestore</button>
-                <TokenURIFetcher contractAddress={"0x0A52E83AE87406bC5171e5fc1e057996e43b274C"} contractABI={BlopABI.abi} />
-            */}
                     {uploadUrl && <p>Uploaded to IPFS: <a href={uploadUrl} target="_blank" rel="noopener noreferrer">{uploadUrl}</a></p>}
 
                     {tokenUrl && <p>View your token on OpenSea: <a href={tokenUrl} target="_blank" rel="noopener noreferrer">{tokenUrl}</a></p>}

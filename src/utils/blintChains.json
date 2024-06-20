@@ -1,0 +1,16 @@
+{
+    "1" : {
+        "name" : "Ethereum",
+        "symbol" : "ETH",
+        "chainID" : 1,
+        "decimals" : 18,
+        "contractAddress" : "0x"
+    },
+    "84532" : {
+        "name" : "Base Sepolia",
+        "symbol" : "BASE",
+        "chainID" : 84532,
+        "decimals" : 18,
+        "contractAddress" : "0xeC8922569D1EEd57D8Ca2537Ecd51e899EFA87cA"
+    }
+}
