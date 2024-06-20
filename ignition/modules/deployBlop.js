@@ -2,12 +2,19 @@ const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 module.exports = buildModule("DeployContracts", (m) => {
     
-    // Deploy the ERC721PresetMinterPauserAutoId contract
-    const ERC721PresetMinterPauserAutoId = m.contract("Blop", [
+    // Deploy the ONFT721 contract
+    const ONFT721 = m.contract("ONFT721", [
         "BLOP",             // Name of the token
-        "BLOP",              // Symbol of the token
-        ""  // Base token URI
+        "BLOP",             // Symbol of the token
+        100000,             // Minimum gas to transfer
+        "0x6EDCE65403992e310A62460808c4b910D972f10f" // LayerZero endpoint address
     ]);
 
-    return { ERC721PresetMinterPauserAutoId };
+    // Deploy the Blop contract
+    const Blop = m.contract("Blop", [
+        ONFT721.address,    // Address of the ONFT721 contract
+        ""                  // Base token URI
+    ]);
+
+    return { Blop };
 });

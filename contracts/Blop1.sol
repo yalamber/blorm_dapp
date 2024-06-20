@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@layerzerolabs/solidity-examples/contracts/token/onft721/ONFT721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -13,7 +12,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract Blop is
     Context,
     AccessControlEnumerable,
-    ERC721Enumerable,
+    ONFT721,
     ERC721Burnable,
     ERC721Pausable,
     ERC721URIStorage
@@ -32,8 +31,10 @@ contract Blop is
     constructor(
         string memory name,
         string memory symbol,
-        string memory baseTokenURI
-    ) ERC721(name, symbol) {
+        string memory baseTokenURI,
+        uint256 minGasToTransfer,
+        address lzEndpoint
+    ) ONFT721(name, symbol, minGasToTransfer, lzEndpoint) {
         _baseTokenURI = baseTokenURI;
 
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
@@ -56,7 +57,6 @@ contract Blop is
         _tokenURISet[tokenId] = true;
     }
 
-    // Solidity function example
     function mintAndSetTokenURI(address recipient, string memory metadataURI) public {
         uint256 tokenId = _tokenIdTracker.current();
         _mint(recipient, tokenId);
@@ -69,7 +69,7 @@ contract Blop is
         address from,
         address to,
         uint256 tokenId
-    ) internal virtual override(ERC721, ERC721Enumerable, ERC721Pausable) {
+    ) internal virtual override(ERC721, ERC721Pausable) {
         super._beforeTokenTransfer(from, to, tokenId);
     }
 
@@ -85,7 +85,7 @@ contract Blop is
         public
         view
         virtual
-        override(AccessControlEnumerable, ERC721, ERC721Enumerable)
+        override(AccessControlEnumerable, ERC721, ONFT721)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

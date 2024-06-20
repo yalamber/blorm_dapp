@@ -13,8 +13,7 @@ module.exports = buildModule("TokenOApp", (m) => {
         "BLORM", // Token symbol
         lzEndpoint,
         owner,
-        initialSupply,
-        0
+        initialSupply
     ]);
 
     return { TokenOApp };
