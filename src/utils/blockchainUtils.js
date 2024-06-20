@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import Blop from './BlopABI.json';
-import UploadToIPFS from '../components/UploadToIPFS';
+import UploadToIPFS from './UploadToIPFS';
 
 const contractAddress = '0x323f3D06f9c1aC17c0F504FBA1dd598fAdD28ea2'; // Replace with your contract address
 
@@ -22,6 +22,8 @@ export const mintToken = async (metadata) => {
 
         console.log('Transaction receipt:', receipt);
 
+        const txHash = receipt.hash;
+
         // ABI Interface to decode the logs
         const iface = new ethers.Interface(Blop.abi);
 
@@ -36,7 +38,7 @@ export const mintToken = async (metadata) => {
 
         if (tokenMintedEvent) {
             console.log('Token minted event:', tokenMintedEvent.args.tokenId.toString());
-            return tokenMintedEvent.args.tokenId;
+            return [tokenMintedEvent.args.tokenId, txHash];
         } else {
             console.error('TokenMinted event not found in logs:', receipt.logs);
             console.log('Attempting to fetch latest minted token ID from contract');
@@ -48,7 +50,7 @@ export const mintToken = async (metadata) => {
             const latestTokenId = await contract.latestTokenMinted(recipientAddress);
             if (latestTokenId) {
                 console.log('Latest minted token ID:', latestTokenId.toString());
-                return latestTokenId;
+                return [latestTokenId, txHash];
             } else {
                 throw new Error('Unable to retrieve the latest minted token ID');
             }

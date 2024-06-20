@@ -1,15 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import * as tf from '@tensorflow/tfjs';
 import predefinedColors from '../utils/predefinedColors.json';
 import colorEmbeddings from '../utils/colorEmbeddings.json';
 import styles from '../styles/Blint.module.css';
-import UploadToIPFS from '../components/UploadToIPFS.js';
+import UploadToIPFS from '../utils/UploadToIPFS.js';
 import { checkBase64Exists, addBase64ToFirestore } from '../utils/firestoreUtils.js';
 import { mintToken } from '../utils/blockchainUtils.js';
 import TokenURIFetcher from '../components/TokenURIFetcher.js';
 import BlopABI from '../utils/BlopABI.json';
 import FuzzySet from 'fuzzyset.js';
 import { Link } from 'react-router-dom';
+import BlintCongrats from '../components/BlintCongrats.js';
+import OpepenGrid from '../components/OpepenGrid.js';
+import Navbar from '../components/Navbar.js';
+
 
 const layers = [
     { id: 'layer1', label: 'Layer 1 (background)', type: 'gradient' },
@@ -48,6 +52,7 @@ const rgbArrayToHex = (rgb) => {
 };
 
 const Blint = () => {
+    const [showCongrats, setShowCongrats] = useState(false);
 
     const [loading, setLoading] = useState(false);
 
@@ -123,7 +128,7 @@ const Blint = () => {
         layer4: true,
         layer5: true,
     });
-    const [backgroundPlaceholder, setBackgroundPlaceholder] = useState('');
+    const [backgroundPlaceholder, setBackgroundPlaceholder] = useState('w');
     const [gradientPlaceholder, setGradientPlaceholder] = useState('');
     const [gradientPlaceholder2, setGradientPlaceholder2] = useState('');
     const canvasRef = useRef(null);
@@ -132,16 +137,59 @@ const Blint = () => {
     const [checkResult, setCheckResult] = useState('');
     const [addResult, setAddResult] = useState('');
 
+    const inputRefs = useRef({});
+
     useEffect(() => {
         const randomPlaceholderColor = () => {
             const colorNames = Object.keys(predefinedColors);
             return colorNames[Math.floor(Math.random() * colorNames.length)];
         };
+        const randomColorBackground = randomPlaceholderColor();
+        const randomColorGradient = randomPlaceholderColor();
+        const randomColorGradient2 = randomPlaceholderColor();
+        setBackgroundPlaceholder(randomColorBackground);
+        setGradientPlaceholder(randomColorGradient);
+        setGradientPlaceholder2(randomColorGradient2);
 
-        setBackgroundPlaceholder(randomPlaceholderColor());
-        setGradientPlaceholder(randomPlaceholderColor());
-        setGradientPlaceholder2(randomPlaceholderColor());
+        // Set initial width for each input after a short delay to ensure elements are rendered
+        setTimeout(() => {
+            Object.values(inputRefs.current).forEach(input => {
+                if (input) {
+                    adjustInputWidth(input);
+                }
+            });
+        }, 100);
     }, []);
+
+    const adjustInputWidth = (input) => {
+        const tempSpan = document.createElement('span');
+        tempSpan.style.visibility = 'hidden';
+        tempSpan.style.fontSize = getComputedStyle(input).fontSize;
+        tempSpan.style.fontFamily = getComputedStyle(input).fontFamily;
+        if (input.value) {
+            tempSpan.textContent = input.value;
+        }
+        else {
+            tempSpan.textContent = input.placeholder;
+        }
+
+        document.body.appendChild(tempSpan);
+        const width = tempSpan.getBoundingClientRect().width;
+        document.body.removeChild(tempSpan);
+        input.style.width = `${width}px`;
+        input.style.marginRight = '0.5rem';
+    };
+
+    const handleInputChange = (event) => {
+        const input = event.target;
+        adjustInputWidth(input);
+    };
+
+    const handleInputBlur = (event, callback) => {
+        const input = event.target;
+        callback(input.value);
+        adjustInputWidth(input);
+    };
 
     const handleChangeBackgroundColor = async (color) => {
         const closestColor = await getClosestColor(color);
@@ -346,14 +394,14 @@ const Blint = () => {
         setCanvasDataURL(canvas.toDataURL('image/png'));
     };
 
-    useEffect(() => {
+    const renderCanvas = () => {
         if (!backgroundColor || !gradientColors.primary || !gradientColors.secondary) return;
         const canvas = canvasRef.current;
         if (canvas) {
             const ctx = canvas.getContext('2d');
             renderLayers(ctx);
         }
-    }, [backgroundColor, gradientColors, visibility]);
+    };
 
     const setInputWidth = (input) => {
         const placeholderText = input.placeholder;
@@ -376,49 +424,9 @@ const Blint = () => {
         setInputWidth(input);
     };
 
-    useEffect(() => {
-        const randomPlaceholderColor = () => {
-            const colorNames = Object.keys(predefinedColors);
-            return colorNames[Math.floor(Math.random() * colorNames.length)];
-        };
-
-        setBackgroundPlaceholder(randomPlaceholderColor());
-        setGradientPlaceholder(randomPlaceholderColor());
-
-        const inputs = document.querySelectorAll(`.${styles.input}`);
-        inputs.forEach(input => {
-            setInputWidth(input);
-        });
-    }, []);
-
-    const handleCheckBase64 = async () => {
-        try {
-            const exists = await checkBase64Exists(canvasDataURL);
-            setCheckResult(exists ? 'Base64 string exists in Firestore.' : 'No matching Base64 string found in Firestore.');
-        } catch (error) {
-            console.error("Error during base64 existence check:", error);
-            setCheckResult('Error checking base64 existence.');
-        }
-    };
-
-    const handleAddBase64 = async () => {
-        try {
-            const result = await addBase64ToFirestore(canvasDataURL);
-            setAddResult(result.message);
-        } catch (error) {
-            console.error("Error during base64 addition:", error);
-            setAddResult('Error adding base64 to Firestore.');
-        }
-    };
-
-    const handleUploadToIPFS = async () => {
-        try {
-            const url = await UploadToIPFS(canvasDataURL);
-            setUploadUrl(url);
-        } catch (error) {
-            console.error("Error uploading to IPFS:", error);
-        }
-    };
+    const [successTxHash, setSuccessTxHash] = useState('');
+    const [successTokenId, setSuccessTokenId] = useState('');
+    const [openseaURL, setOpenseaURL] = useState('');
 
     const handleUploadAndMint = async () => {
         if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor) {
@@ -431,13 +439,7 @@ const Blint = () => {
             setTokenUrl('Loading...');
             const exists = await checkBase64Exists(canvasDataURL);
             if (exists) {
-                setError('Error: This base64 string already exists in Firestore.');
-                return;
-            }
-
-            const addResult = await addBase64ToFirestore(canvasDataURL);
-            if (!addResult.success) {
-                setError('Error: Failed to add base64 string to Firestore.');
+                setError('Looks like this Opepen has been minted already, please generate again!');
                 return;
             }
 
@@ -445,16 +447,29 @@ const Blint = () => {
             const updatedMetadata = { ...metadata, image: uri };
             setMetadata(updatedMetadata);
 
-            const tokenId = await mintToken(updatedMetadata);
+            const txResponse = await mintToken(updatedMetadata);
+            const tokenId = txResponse[0];
+            const txHash = txResponse[1];
+            setSuccessTxHash(txHash);
             if (!tokenId) {
                 setError('Error: Failed to get token ID.');
+                return;
+            }
+            setSuccessTokenId(tokenId);
+
+
+            const addResult = await addBase64ToFirestore(canvasDataURL);
+            if (!addResult.success) {
+                setError('Error: Failed to add Opepen to uniqueness database.');
                 return;
             }
 
             const tokenAddress = "0x323f3D06f9c1aC17c0F504FBA1dd598fAdD28ea2"; // Use your contract address
             const url = `https://testnets.opensea.io/assets/base-sepolia/${tokenAddress}/${tokenId}`;
+            setOpenseaURL(url);
             setTokenUrl(url);
             setLoading(false);
+            setShowCongrats(true);
         } catch (error) {
             setLoading(false);
             console.error('Error uploading and minting:', error);
@@ -464,80 +479,99 @@ const Blint = () => {
 
     const testOptions = ['Option 1', 'Option 2', 'Option 3'];
 
+    const OpepenGridTop = useMemo(() => <OpepenGrid rows={3} imageSize={60} />, []);
+    const OpepenGridBottom = useMemo(() => <OpepenGrid rows={3} imageSize={40} />, []);
+
     return (
         <div className={styles.container}>
-            <Link to="/"><img src="/logo.png" alt="BLORM LOGO" className={styles.logo} /></Link>
+            <Navbar />
+            {OpepenGridTop}
             {loading ? <div className={styles.loading}>Loading . . .</div> : null}
-            <div className={styles.titleContainer}>
-                <h1 className={styles.title}>B L I N T</h1>
-            </div>
-            <div>
-                <p className={styles.sentence}>
-                    I want to mint a
-                    <input
-                        type="text"
-                        placeholder={gradientPlaceholder}
-                        onBlur={(e) => {
-                            handleChangeGradientColor('primary', e.target.value);
-                            handleResize(e);
-                        }}
-                        onInput={handleResize}
-                        className={styles.input}
-                    /> and
-                    <input
-                        type="text"
-                        placeholder={gradientPlaceholder2}
-                        onBlur={(e) => {
-                            handleChangeGradientColor('secondary', e.target.value);
-                            handleResize(e);
-                        }}
-                        onInput={handleResize}
-                        className={styles.input}
-                    /> Opepen with a
-                    <input
-                        type="text"
-                        placeholder={backgroundPlaceholder}
-                        onBlur={(e) => {
-                            handleChangeBackgroundColor(e.target.value);
-                            handleResize(e);
-                        }}
-                        onInput={handleResize}
-                        className={styles.input}
-                    /> background.
-                </p>
-            </div>
-            <div className={styles.canvasContainer}>
-                <canvas ref={canvasRef} width={500} height={500} />
-            </div>
+            {showCongrats ? <BlintCongrats txHash={successTxHash} tokenId={successTokenId} openseaURL={openseaURL} />:
+                <div className={styles.middleContainer}>
+                    <div className={styles.sentence}>
+                        <div>
+                        </div>
+                        <div>
+                            <span>I want to mint a</span>
+                            <input
+                                ref={(el) => (inputRefs.current['primary'] = el)}
+                                type="text"
+                                placeholder={gradientPlaceholder}
+                                onBlur={(e) => handleInputBlur(e, handleChangeGradientColor.bind(null, 'primary'))}
+                                onChange={handleInputChange}
+                                className={styles.colorInput}
+                            />
+                        </div>
+                        <div>
+                            <span>and</span>
+                            <input
+                                ref={(el) => (inputRefs.current['secondary'] = el)}
+                                type="text"
+                                placeholder={gradientPlaceholder2}
+                                onBlur={(e) => handleInputBlur(e, handleChangeGradientColor.bind(null, 'secondary'))}
+                                onChange={handleInputChange}
+                                className={styles.colorInput}
+                            />
+                            <span>Opepen</span>
+                        </div>
+                        <div>
+                            <span>with a</span>
+                            <input
+                                ref={(el) => (inputRefs.current['background'] = el)}
+                                type="text"
+                                placeholder={backgroundPlaceholder}
+                                onBlur={(e) => handleInputBlur(e, handleChangeBackgroundColor)}
+                                onChange={handleInputChange}
+                                className={styles.colorInput}
+                            />
+                            <span>background</span>
+                        </div>
+                        <div>
+                            <span>on </span>
+                            <select className={styles.chainSelect} defaultValue="">
+                                <option value="" disabled>Select Chain</option>
+                                {testOptions.map((option, index) => (
+                                    <option key={index} value={option}>
+                                        {option}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div className={styles.canvasContainer}>
+                        <div className={styles.canvasInner}>
+                            <canvas ref={canvasRef} width={400} height={400} />
+                        </div>
+                        <div className={styles.buttonsContainer}>
+                        <div className={styles.generateButtonContainer}>
+                            <button className={styles.actionButton} onClick={renderCanvas}>Generate</button>
+                        </div>
+                        <div className={styles.mintButtonContainer}>
+                            <button className={styles.actionButton} onClick={handleUploadAndMint}>Mint</button>
+                        </div>
+                    </div>
+                    </div>
 
-            <div className={styles.chainSelectMintButtonContainer}>
-                <div className={styles.chainSelectContainer}>
-                    <select className={styles.chainSelect} defaultValue="">
-                        <option value="" disabled>Select Chain</option>
-                        {testOptions.map((option, index) => (
-                            <option key={index} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div className={styles.mintButtonContainer}>
-                    <button className={styles.mintButton} onClick={handleUploadAndMint}>Mint</button>
-                </div>
-            </div>
+                    
 
 
-            <p>{checkResult}</p>
-            <p>{addResult}</p>
-            {/* <button onClick={handleUploadToIPFS}>Upload to IPFS</button> 
+                    <p>{checkResult}</p>
+                    <p>{addResult}</p>
+                    {/* <button onClick={handleUploadToIPFS}>Upload to IPFS</button> 
                 <button onClick={handleCheckBase64}>Check Base64 in Firestore</button>
                 <button onClick={handleAddBase64}>Add Base64 to Firestore</button>
                 <TokenURIFetcher contractAddress={"0x0A52E83AE87406bC5171e5fc1e057996e43b274C"} contractABI={BlopABI.abi} />
             */}
-            {uploadUrl && <p>Uploaded to IPFS: <a href={uploadUrl} target="_blank" rel="noopener noreferrer">{uploadUrl}</a></p>}
+                    {uploadUrl && <p>Uploaded to IPFS: <a href={uploadUrl} target="_blank" rel="noopener noreferrer">{uploadUrl}</a></p>}
 
-            {tokenUrl && <p>View your token on OpenSea: <a href={tokenUrl} target="_blank" rel="noopener noreferrer">{tokenUrl}</a></p>}
-            {error && <p className={styles.error}>{error}</p>}
+                    {tokenUrl && <p>View your token on OpenSea: <a href={tokenUrl} target="_blank" rel="noopener noreferrer">{tokenUrl}</a></p>}
+                    {error && <p className={styles.error}>{error}</p>}
+                </div>
+            }
+            <div className={styles.bottomContainer}>
+                {OpepenGridBottom}
+            </div>
         </div>
     );
 };
