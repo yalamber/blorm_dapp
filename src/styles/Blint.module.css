@@ -5,9 +5,8 @@
     width: 100vw;
     flex-direction: column;
     font-family: "Chakra Petch", sans-serif;
-    background: white;
     margin: 0;
-    padding-top: 7.5vh;
+    padding-top: 7vh;
     box-sizing: border-box;
     overflow: hidden;
   }
@@ -101,7 +100,7 @@
 .canvasInner{
     width: fit-content;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
-    height: 100%;
+    height: fit-content;
 }
 
 .buttonsContainer {

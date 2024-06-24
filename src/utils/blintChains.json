@@ -4,13 +4,23 @@
         "symbol" : "ETH",
         "chainID" : 1,
         "decimals" : 18,
-        "contractAddress" : "0x"
+        "contractAddress" : "0x",
+        "opensea" : ""
     },
     "84532" : {
         "name" : "Base Sepolia",
-        "symbol" : "BASE",
+        "symbol" : "ETH",
         "chainID" : 84532,
         "decimals" : 18,
-        "contractAddress" : "0xeC8922569D1EEd57D8Ca2537Ecd51e899EFA87cA"
+        "contractAddress" : "0xcD2c7AbC4CB18fcf08a5f00E96742303411ab2ec",
+        "opensea" : "https://testnets.opensea.io/assets/base-sepolia"
+    },
+    "11155111" : {
+        "name" : "Sepolia",
+        "symbol" : "ETH",
+        "chainID" : 11155111,
+        "decimals" : 18,
+        "contractAddress" : "0xDBDba1E824c8F6030B48b7626e6220631f635d63",
+        "opensea" : "https://opensea.io/assets/sepolia"
     }
 }

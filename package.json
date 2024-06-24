@@ -57,6 +57,7 @@
     "react-router-dom": "^6.23.1",
     "react-scripts": "^5.0.0",
     "react-select": "^5.8.0",
+    "solc": "^0.8.7-fixed",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "truffle": "^5.11.5",
