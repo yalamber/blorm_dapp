@@ -1,26 +1,38 @@
 {
-    "1" : {
-        "name" : "Ethereum",
-        "symbol" : "ETH",
-        "chainID" : 1,
-        "decimals" : 18,
-        "contractAddress" : "0x",
-        "opensea" : ""
+    "1": {
+        "name": "Ethereum",
+        "symbol": "ETH",
+        "chainID": 1,
+        "decimals": 18,
+        "contractAddress": "0x",
+        "opensea": "",
+        "id": 1,
+        "token": "ETH",
+        "label": "Ethereum",
+        "rpcUrl": "https://eth.llamarpc.com"
     },
-    "84532" : {
-        "name" : "Base Sepolia",
-        "symbol" : "ETH",
-        "chainID" : 84532,
-        "decimals" : 18,
-        "contractAddress" : "0xcD2c7AbC4CB18fcf08a5f00E96742303411ab2ec",
-        "opensea" : "https://testnets.opensea.io/assets/base-sepolia"
+    "84532": {
+        "name": "Base Sepolia",
+        "symbol": "ETH",
+        "chainID": 84532,
+        "decimals": 18,
+        "contractAddress": "0x0f60648Aa233a0e1884f2684aA6a0BD6eB9e085b",
+        "opensea": "https://testnets.opensea.io/assets/base-sepolia",
+        "id": 84532,
+        "token": "ETH",
+        "label": "Base Sepolia",
+        "rpcUrl": "https://sepolia.base.org"
     },
-    "11155111" : {
-        "name" : "Sepolia",
-        "symbol" : "ETH",
-        "chainID" : 11155111,
-        "decimals" : 18,
-        "contractAddress" : "0xDBDba1E824c8F6030B48b7626e6220631f635d63",
-        "opensea" : "https://opensea.io/assets/sepolia"
+    "11155111": {
+        "name": "Sepolia",
+        "symbol": "ETH",
+        "chainID": 11155111,
+        "decimals": 18,
+        "contractAddress": "0x3830D9A6a9CfF25D731e74623c0aE722860C9b1e",
+        "opensea": "https://testnets.opensea.io/assets/sepolia",
+        "id": 11155111,
+        "token": "ETH",
+        "label": "Sepolia",
+        "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com"
     }
 }

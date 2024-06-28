@@ -1,19 +1,45 @@
-import React from 'react';
-import '../styles/OpepenGrid.modules.css';
+import React, { useEffect, useState } from 'react';
+import styles from '../styles/OpepenGrid.modules.css';
+import image1 from '../images/banner/1.png';
+import image2 from '../images/banner/2.png';
+import image3 from '../images/banner/3.png';
+import image4 from '../images/banner/4.png';
+import image5 from '../images/banner/5.png';
+import image6 from '../images/banner/6.png';
+import image7 from '../images/banner/7.png';
+import image8 from '../images/banner/8.png';
+import image9 from '../images/banner/9.png';
+import image10 from '../images/banner/10.png';
+import image11 from '../images/banner/11.png';
+import image12 from '../images/banner/12.png';
+
+const images = [
+  image1, image2, image3, image4, image5, image6,
+  image7, image8, image9, image10, image11, image12
+];
 
 const OpepenGrid = ({ rows, imageSize }) => {
-  const imageSrc = `opepen-bw.png`;
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  // Generate an array of arrays for rows and images
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const generateImageArray = () => {
     const imageArray = [];
     for (let i = 0; i < rows; i++) {
       const rowImages = [];
-      const numImagesInRow = Math.floor(window.innerWidth / (imageSize + 6)); // Account for margins
+      const numImagesInRow = Math.floor(windowWidth / (imageSize + 12));
       for (let j = 0; j < numImagesInRow; j++) {
+        const randomIndex = Math.floor(Math.random() * images.length);
+        const direction = Math.random() > 0.5 ? 'clockwise' : 'counterclockwise';
         rowImages.push({
           key: `${i}-${j}`,
-          rotation: Math.random() * 360 // Generate random rotation
+          src: images[randomIndex],
+          rotation: Math.random() * 360,
+          direction: direction
         });
       }
       imageArray.push(rowImages);
@@ -30,13 +56,14 @@ const OpepenGrid = ({ rows, imageSize }) => {
           {row.map(image => (
             <img
               key={image.key}
-              src={imageSrc}
+              src={image.src}
               alt="Grid"
+              className={`rotate-${image.direction}`}
               style={{
                 width: `${imageSize}px`,
                 height: 'auto',
                 transform: `rotate(${image.rotation}deg)`,
-                margin: '3px'
+                margin: '6px',
               }}
             />
           ))}

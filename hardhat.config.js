@@ -20,7 +20,8 @@ module.exports = {
     sepolia: {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
       accounts: [SEPOLIA_PRIVATE_KEY],
-      allowUnlimitedContractSize: true
+      allowUnlimitedContractSize: true,
+      loggingEnabled: true, // Enable logging for Hardhat Network
     },
     base_sepolia: {
       url: `https://base-sepolia.infura.io/v3/${INFURA_API_KEY}`,
@@ -33,6 +34,7 @@ module.exports = {
       enabled: true,
       runs: 0
     },
+    evmVersion: "shanghai",
   }
 };
 

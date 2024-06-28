@@ -465,8 +465,8 @@ const Blint = () => {
 
     const testOptions = ['Option 1', 'Option 2', 'Option 3'];
 
-    const OpepenGridTop = useMemo(() => <OpepenGrid rows={3} imageSize={60} />, []);
-    const OpepenGridBottom = useMemo(() => <OpepenGrid rows={3} imageSize={40} />, []);
+    const OpepenGridTop = useMemo(() => <OpepenGrid rows={2} imageSize={80} />, []);
+    const OpepenGridBottom = useMemo(() => <OpepenGrid rows={2} imageSize={80} />, []);
 
     const handleClose = () => {
         setDisplayMessage([]);
