@@ -4,11 +4,17 @@ import styles from '../styles/BlintCongrats.module.css';
 const BlintCongrats = ({ txHash, tokenId, openseaURL }) => {
     return (
         <div className={styles.container}>
-            <h1>Congratulations!</h1>
-            <p>You've successfully minted an Opepen.</p>
-            <p>Transaction Hash: {txHash}</p>
-            <p>Token ID: {tokenId}</p>
-            <p>OpenSea URL: <a href={openseaURL}>{openseaURL}</a></p>
+            <div className={styles.backgroundImage}>
+            </div>
+            <div className={styles.centerContainer}>
+                <h1 className={styles.title}>Congratulations!</h1>
+                <h2 className={styles.subtitle}>Your Blint has been minted!</h2>
+                <div className={styles.txHashContainer}>
+                    <p className={styles.txHash}>Transaction Hash: {txHash}</p>
+                    <p className={styles.txHash}>Token ID: {tokenId}</p>
+                    <p className={styles.txHash}>View on OpenSea: <a href={openseaURL} target="_blank" rel="noreferrer">{openseaURL}</a></p>
+                    </div>
+            </div>
         </div>
     );
 }

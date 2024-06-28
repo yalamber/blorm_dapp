@@ -1,0 +1,51 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    width: 100vw;
+    justify-content: center;
+    color: black;
+  }
+  
+  .profileField {
+    display: flex;
+    margin-bottom: 10px;
+  }
+  
+  .profileField label {
+    margin-right: 10px;
+  }
+  
+  .profileField input {
+    padding: 5px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+  }
+  
+  .editPanel {
+    position: fixed;
+    top: 7vh;
+    right: -100%;
+    width: 100%;
+    height: calc(100% - 7vh);
+    background: white;
+    transition: right 0.3s ease-in-out;
+    z-index: 1000;
+  }
+  
+  .editPanel.open {
+    right: 0;
+  }
+  
+  .editContent {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  

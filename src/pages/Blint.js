@@ -6,13 +6,13 @@ import styles from '../styles/Blint.module.css';
 import UploadToIPFS from '../utils/UploadToIPFS.js';
 import { checkBase64Exists, addBase64ToFirestore } from '../utils/firestoreUtils.js';
 import { mintToken } from '../utils/blockchainUtils.js';
-import TokenURIFetcher from '../components/TokenURIFetcher.js';
 import FuzzySet from 'fuzzyset.js';
 import { Link } from 'react-router-dom';
 import BlintCongrats from '../components/BlintCongrats.js';
 import OpepenGrid from '../components/OpepenGrid.js';
 import Navbar from '../components/Navbar.js';
 import blintChains from '../utils/blintChains.json';
+import BlintError from '../components/BlintError.js';
 
 
 const layers = [
@@ -52,6 +52,7 @@ const rgbArrayToHex = (rgb) => {
 };
 
 const Blint = () => {
+    const [displayMessage, setDisplayMessage] = useState();
     const [showCongrats, setShowCongrats] = useState(false);
 
     const [loading, setLoading] = useState(false);
@@ -116,7 +117,6 @@ const Blint = () => {
     };
 
     const [tokenUrl, setTokenUrl] = useState('');
-    const [error, setError] = useState('');
 
     const [backgroundColor, setBackgroundColor] = useState('');
     const [gradientColors, setGradientColors] = useState({
@@ -413,11 +413,11 @@ const Blint = () => {
         const chainID = event.target.value;
         const selectedChainObject = blintChains[chainID];
         setSelectedChain(selectedChainObject);
-    };
+    };    
 
     const handleUploadAndMint = async () => {
         if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor || !selectedChain) {
-            setError('Error: Please fill in all colors and select a chain.');
+            displayMessage.push({ message: 'Please fill in all colors and select a chain.', type: 'error' });
             return;
         }
 
@@ -426,7 +426,7 @@ const Blint = () => {
             setTokenUrl('Loading...');
             const exists = await checkBase64Exists(canvasDataURL);
             if (exists) {
-                setError('Looks like this Opepen has been minted already, please generate again!');
+                displayMessage.push({ message: 'Looks like this Opepen has been minted already, please generate again!', type: 'error' });
                 return;
             }
 
@@ -439,7 +439,7 @@ const Blint = () => {
             const txHash = txResponse[1];
             setSuccessTxHash(txHash);
             if (tokenId === undefined) {
-                setError('Error: Failed to get token ID.');
+                displayMessage.push({ message: 'Failed to get token ID.', type: 'error' });
                 return;
             }
             setSuccessTokenId(tokenId);
@@ -447,30 +447,37 @@ const Blint = () => {
 
             const addResult = await addBase64ToFirestore(canvasDataURL);
             if (!addResult.success) {
-                setError('Error: Failed to add Opepen to uniqueness database.');
+                displayMessage.push({ message: 'Failed to add Opepen to Base64 database.', type: 'error' });
                 return;
             }
 
-            const url = `https://testnets.opensea.io/assets/base-sepolia/${selectedChain.contractAddress}/${tokenId}`;
+            const url = `${selectedChain.opensea}/${selectedChain.contractAddress}/${tokenId}`;
             setOpenseaURL(url);
             setTokenUrl(url);
             setLoading(false);
             setShowCongrats(true);
         } catch (error) {
             setLoading(false);
-            console.error(' g and minting:', error);
-            setError('Error uploading and minting. Please try again.');
+            console.error('Uploading and minting:', error);
+            displayMessage.push({ message: 'There was an issue with uploading and minting, Please try again.', type: 'error' });
         }
     };
 
     const testOptions = ['Option 1', 'Option 2', 'Option 3'];
 
-    const OpepenGridTop = useMemo(() => <OpepenGrid rows={3} imageSize={60} />, []);
-    const OpepenGridBottom = useMemo(() => <OpepenGrid rows={3} imageSize={40} />, []);
+    const OpepenGridTop = useMemo(() => <OpepenGrid rows={2} imageSize={80} />, []);
+    const OpepenGridBottom = useMemo(() => <OpepenGrid rows={2} imageSize={80} />, []);
+
+    const handleClose = () => {
+        setDisplayMessage([]);
+    };
 
     return (
         <div className={styles.container}>
             <Navbar />
+            {displayMessage && displayMessage.length > 0 && (
+                <BlintError messages={displayMessage} onClose={handleClose} />
+            )}
             {OpepenGridTop}
             {loading ? <div className={styles.loading}>Loading . . .</div> : null}
             {showCongrats ? <BlintCongrats txHash={successTxHash} tokenId={successTokenId} openseaURL={openseaURL} /> :
@@ -542,16 +549,6 @@ const Blint = () => {
                             </div>
                         </div>
                     </div>
-
-
-
-
-                    <p>{checkResult}</p>
-                    <p>{addResult}</p>
-                    {uploadUrl && <p>Uploaded to IPFS: <a href={uploadUrl} target="_blank" rel="noopener noreferrer">{uploadUrl}</a></p>}
-
-                    {tokenUrl && <p>View your token on OpenSea: <a href={tokenUrl} target="_blank" rel="noopener noreferrer">{tokenUrl}</a></p>}
-                    {error && <p className={styles.error}>{error}</p>}
                 </div>
             }
             <div className={styles.bottomContainer}>

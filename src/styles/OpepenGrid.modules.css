@@ -1,12 +1,41 @@
+@keyframes rotation-clockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotation-counterclockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.rotate-clockwise {
+  animation: rotation-clockwise 10s linear infinite;
+}
+
+.rotate-counterclockwise {
+  animation: rotation-counterclockwise 10s linear infinite;
+}
+
 .image-grid {
-    display: flex;
-    flex-direction: column;
-    width: 100vw;
-    overflow-x: hidden;
-  }
-  
-  .row {
-    display: flex;
-    justify-content: center;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  overflow-x: hidden;
+  z-index: 5;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+}

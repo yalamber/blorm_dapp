@@ -1,0 +1,123 @@
+.container {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+    height: fit-content;
+    position: relative;
+    overflow: hidden;
+    flex-direction: column;
+    align-items: center;
+}
+
+@keyframes rainbow {
+    0%{color: darkred;}
+    14%{color: darkorange;}
+    28%{color: gold;}
+    42%{color: darkgreen;}
+    57%{color: navy;}
+    71%{color: indigo;}
+    85%{color: purple;}
+    100%{color: darkred;}
+  }
+  
+
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -999;
+    white-space: pre-wrap;
+    background: white;
+    /* To respect newline characters */
+    /* Optional background color for visibility */
+    /* Optional text color */
+    font-family: monospace;
+    /* ASCII art looks better with a monospace font */
+    text-align: center;
+    overflow: hidden;
+    display: flex;
+    /* Use flexbox to center the content */
+    align-items: center;
+    /* Center vertically */
+    justify-content: center;
+    /* Center horizontally */
+}
+
+.pre {
+    animation: rainbow 10s linear infinite;
+    background: linear-gradient(to bottom right, darkred, darkorange, gold, darkgreen, navy, indigo, purple, darkred);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: monospace;
+    color: black;
+}
+
+.titleContainer{
+    display: flex;
+    width: 100%;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+}
+
+.title {
+    font-size: 7rem;
+    font-weight: bolder;
+    margin: 0;
+    color: white;
+}
+
+Link {
+    text-decoration: none;
+    color: black;
+}
+
+.actionButton {
+    margin-top: 65vh;
+    align-items: center;
+    appearance: none;
+    background-color: #222;
+    border-radius: 15px;
+    border-width: 0;
+    box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px,rgba(45, 35, 66, 0.3) 0 7px 13px -3px,#D6D6E7 0 -3px 0 inset;
+    box-sizing: border-box;
+    color: black;
+    background: white;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: "Chakra Petch",monospace;
+    height: 48px;
+    justify-content: center;
+    line-height: 1;
+    list-style: none;
+    overflow: hidden;
+    position: relative;
+    text-align: left;
+    text-decoration: none;
+    transition: box-shadow .15s,transform .15s;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: nowrap;
+    will-change: box-shadow,transform;
+    font-size: 18px;
+    font-weight: bold;
+    width: 15vw;
+  }
+  
+  .actionButton:focus, .chainSelect:focus {
+    box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+  }
+  
+  .actionButton:hover, .chainSelect:hover {
+    box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+    transform: translateY(-2px);
+  }
+  
+  .actionButton:active, .chainSelect:active{
+    box-shadow: #D6D6E7 0 3px 7px inset;
+    transform: translateY(2px);
+  }
+  
