@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from '../styles/NftCard.module.css';
 
-const NftCard = ({ nft }) => {
+const NftCard = ({ nft, chain }) => {
   return (
     <div className={styles.card}>
       <img src={nft.metadata.image} alt={nft.metadata.name} className={styles.image} />
@@ -15,6 +15,7 @@ const NftCard = ({ nft }) => {
                 <strong>{attribute.trait_type}:</strong> {attribute.value}
               </div>
             ))}
+            <p>Chain: {chain}</p>
           </div>
         )}
       </div>

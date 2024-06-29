@@ -14,6 +14,7 @@ const Profile = () => {
   const [localProfile, setLocalProfile] = useState(profile);
   const [editing, setEditing] = useState(false);
   const [nftData, setNftData] = useState({});
+  const [loadingNfts, setLoadingNfts] = useState(false); // Added state for loading status
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ const Profile = () => {
   }, [walletAddress]);
 
   const fetchNfts = async () => {
+    setLoadingNfts(true); // Set loading status to true when starting to fetch
     const nftData = {};
     for (const chainId in blintChains) {
       const chain = blintChains[chainId];
@@ -39,10 +41,10 @@ const Profile = () => {
         ],
         provider
       );
-
+  
       try {
         const tokens = await contract.getTokensOfOwner(walletAddress);
-        nftData[chain.name] = await Promise.all(
+        nftData[chainId] = await Promise.all(
           tokens.map(async (token) => {
             const tokenId = token.toString();
             const tokenUri = await contract.tokenURI(tokenId);
@@ -55,11 +57,12 @@ const Profile = () => {
         console.error(`Error fetching NFTs on ${chain.name}:`, error);
       }
     }
-
+  
     setNftData(nftData);
+    setLoadingNfts(false); // Set loading status to false after fetching is done
     console.log('NFT Data:', nftData);
   };
-
+  
   const handleSampleClick = () => {
     setShowModal(true);
   };
@@ -177,19 +180,22 @@ const Profile = () => {
       <hr className={styles.divider} />
 
       <div className={styles.nftData}>
-        {Object.keys(nftData).length === 0 ? (
-          <div className={styles.noNftsMessage}>No NFTs found.</div>
+        {loadingNfts ? ( // Display loading message while fetching
+          <div className={styles.loadingMessage}>Fetching NFTs...</div>
         ) : (
-          Object.entries(nftData).map(([chain, nfts]) => (
-            <div key={chain} className={styles.chainSection}>
-              <span className={styles.chainLabel}>{chain}</span>
-              <div className={styles.nftGrid}>
-                {nfts.map((nft, index) => (
-                  <NftCard key={index} nft={nft} />
-                ))}
+          Object.keys(nftData).length === 0 ? (
+            <div className={styles.noNftsMessage}>No NFTs found.</div>
+          ) : (
+            Object.entries(nftData).map(([chain, nfts]) => (
+              <div key={chain} className={styles.chainSection}>
+                <div className={styles.nftGrid}>
+                  {nfts.map((nft, index) => (
+                    <NftCard key={index} nft={nft} chain={chain}/>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))
+            ))
+          )
         )}
       </div>
     </div>

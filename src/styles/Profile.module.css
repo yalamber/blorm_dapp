@@ -77,12 +77,12 @@
     flex-direction: column;
     flex-wrap: wrap;
     gap: 3vh;
-    width: 100vw;
+    width: 90vw;
+    padding-left: 5vw;
+    padding-right: 5vw;
   }
   
   .chainSection {
-    padding-left: 5vw;
-    padding-right: 5vw;
     width: 100vw;
   }
   
