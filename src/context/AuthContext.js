@@ -145,6 +145,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     try {
       await auth.signOut();
+      await onboard.disconnectWallet();  // Disconnect the wallet
       localStorage.removeItem('connectedWallet');
     } catch (error) {
       console.error('Error signing out:', error);
