@@ -20,7 +20,7 @@ const Navbar = () => {
       </Link>
       <div className={styles.navbarLinks}>
         <Link to="https://x.com/blorm_"><img src={x} alt="X" className={styles.logoLink} /></Link>
-        <Link to="/"><img src={arch} alt="Arch" className={styles.logoLink} /></Link>
+        <Link to="/blap"><img src={arch} alt="Arch" className={styles.logoLink} /></Link>
         <AuthButton />
       </div>
     </div>
