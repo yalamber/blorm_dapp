@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, db } from '../utils/firebase'; // Import db from Firebase utils
-import { signInWithCustomToken } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore'; // Import Firestore functions
+import { getAuth, setPersistence, browserLocalPersistence, signInWithCustomToken } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import Onboard from '@web3-onboard/core';
 import injectedModule from '@web3-onboard/injected-wallets';
+import { auth, db } from '../utils/firebase';
 import blintChains from '../utils/blintChains.json';
 
 const injected = injectedModule();
@@ -12,12 +12,13 @@ const chains = Object.values(blintChains).map(chain => ({
   id: chain.id,
   token: chain.token,
   label: chain.label,
-  rpcUrl: chain.rpcUrl
+  rpcUrl: chain.rpcUrl,
 }));
 
 const onboard = Onboard({
+  theme: 'system',
   wallets,
-  chains
+  chains,
 });
 
 const AuthContext = createContext({
@@ -29,7 +30,7 @@ const AuthContext = createContext({
   signOut: () => {},
   handleLogin: () => {},
   fetchUserProfile: () => {},
-  updateUserProfile: () => {}
+  updateUserProfile: () => {},
 });
 
 export const AuthProvider = ({ children }) => {
@@ -37,20 +38,59 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [walletAddress, setWalletAddress] = useState(null);
-  const [profile, setProfile] = useState({ name: '', bio: '', eth_address: '', sol_address: '' });
+  const [profile, setProfile] = useState({
+    name: '',
+    bio: '',
+    eth_address: '',
+    sol_address: '',
+    profilePicture: '',
+  });
 
   useEffect(() => {
-    auth.onAuthStateChanged(async (user) => {
-      setUser(user);
-      setLoading(false);
-      if (user) {
-        const profileData = await fetchUserProfile(user.uid);
-        if (profileData) {
-          setProfile(profileData);
+    const auth = getAuth();
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+          setUser(user);
+          setLoading(false);
+          if (user) {
+            await reconnectWallet(); // Attempt to reconnect wallet if user is logged in
+          } else {
+            setProfile({
+              name: '',
+              bio: '',
+              eth_address: '',
+              sol_address: '',
+              profilePicture: '',
+            });
+          }
+        });
+        return unsubscribe;
+      })
+      .catch((error) => console.error('Error setting persistence:', error));
+  }, []);
+
+  const reconnectWallet = async () => {
+    const savedWallet = localStorage.getItem('connectedWallet');
+    if (savedWallet) {
+      const previouslyConnectedWallets = onboard.state.get().wallets;
+      if (previouslyConnectedWallets.length > 0) {
+        await onboard.connectWallet({
+          autoSelect: { label: savedWallet, disableModals: true },
+        });
+        const walletAddress = previouslyConnectedWallets[0].accounts[0].address;
+        setWalletAddress(walletAddress);
+
+        // Fetch user profile after reconnecting wallet
+        if (user) {
+          const profileData = await fetchUserProfile(user.uid);
+          if (profileData) {
+            setProfile(profileData);
+          }
         }
       }
-    });
-  }, []);
+    }
+  };
 
   const handleLogin = async () => {
     try {
@@ -58,13 +98,14 @@ export const AuthProvider = ({ children }) => {
       if (wallet) {
         const walletAddress = wallet.accounts[0].address;
         setWalletAddress(walletAddress);
+        localStorage.setItem('connectedWallet', wallet.label);
 
         const response = await fetch('https://us-central1-blorm-dapp.cloudfunctions.net/createCustomToken', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ walletAddress })
+          body: JSON.stringify({ walletAddress }),
         });
 
         if (!response.ok) {
@@ -84,7 +125,8 @@ export const AuthProvider = ({ children }) => {
             eth_address: uid,
             name: '',
             bio: '',
-            sol_address: ''
+            sol_address: '',
+            profilePicture: '',
           });
         }
 
@@ -101,10 +143,22 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
-    await auth.signOut();
-    setWalletAddress(null);
-    setUser(null);
-    setProfile({ name: '', bio: '', eth_address: '', sol_address: '' });
+    try {
+      await auth.signOut();
+      localStorage.removeItem('connectedWallet');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    } finally {
+      setWalletAddress(null);
+      setUser(null);
+      setProfile({
+        name: '',
+        bio: '',
+        eth_address: '',
+        sol_address: '',
+        profilePicture: '',
+      });
+    }
   };
 
   const fetchUserProfile = async (uid) => {
@@ -127,7 +181,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, walletAddress, profile, setWalletAddress, signOut, handleLogin, fetchUserProfile, updateUserProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        error,
+        walletAddress,
+        profile,
+        setWalletAddress,
+        signOut,
+        handleLogin,
+        fetchUserProfile,
+        updateUserProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

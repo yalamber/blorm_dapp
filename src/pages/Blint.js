@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import BlintDisplayMessage from '../components/BlintDisplayMessage';
 import * as tf from '@tensorflow/tfjs';
 import predefinedColors from '../utils/predefinedColors.json';
 import colorEmbeddings from '../utils/colorEmbeddings.json';
@@ -13,7 +14,7 @@ import OpepenGrid from '../components/OpepenGrid.js';
 import Navbar from '../components/Navbar.js';
 import blintChains from '../utils/blintChains.json';
 import BlintError from '../components/BlintError.js';
-
+import { useAuth } from '../context/AuthContext';
 
 const layers = [
     { id: 'layer1', label: 'Layer 1 (background)', type: 'gradient' },
@@ -52,7 +53,10 @@ const rgbArrayToHex = (rgb) => {
 };
 
 const Blint = () => {
-    const [displayMessage, setDisplayMessage] = useState();
+    const { user, handleLogin } = useAuth();
+    const [showModal, setShowModal] = useState(false);
+
+    const [displayMessage, setDisplayMessage] = useState([]);
     const [showCongrats, setShowCongrats] = useState(false);
 
     const [loading, setLoading] = useState(false);
@@ -395,7 +399,10 @@ const Blint = () => {
     };
 
     const renderCanvas = () => {
-        if (!backgroundColor || !gradientColors.primary || !gradientColors.secondary) return;
+        if (!backgroundColor || !gradientColors.primary || !gradientColors.secondary) {
+            setDisplayMessage([...displayMessage, { message: 'Please fill in all colors.', type: 'error' }]);
+            return;
+        }
         const canvas = canvasRef.current;
         if (canvas) {
             const ctx = canvas.getContext('2d');
@@ -413,11 +420,20 @@ const Blint = () => {
         const chainID = event.target.value;
         const selectedChainObject = blintChains[chainID];
         setSelectedChain(selectedChainObject);
-    };    
+    };
+
+    const clearMessage = (index) => {
+        setDisplayMessage((prevMessages) => prevMessages.filter((_, i) => i !== index));
+    };
 
     const handleUploadAndMint = async () => {
+        if (!user) {
+            setShowModal(true);
+            return;
+        }
+
         if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor || !selectedChain) {
-            displayMessage.push({ message: 'Please fill in all colors and select a chain.', type: 'error' });
+            setDisplayMessage([...displayMessage, { message: 'Please fill in all colors and select a chain.', type: 'error' }]);
             return;
         }
 
@@ -426,7 +442,7 @@ const Blint = () => {
             setTokenUrl('Loading...');
             const exists = await checkBase64Exists(canvasDataURL);
             if (exists) {
-                displayMessage.push({ message: 'Looks like this Opepen has been minted already, please generate again!', type: 'error' });
+                setDisplayMessage([...displayMessage, { message: 'Looks like this Opepen has been minted already, please generate again!', type: 'error' }]);
                 return;
             }
 
@@ -439,15 +455,14 @@ const Blint = () => {
             const txHash = txResponse[1];
             setSuccessTxHash(txHash);
             if (tokenId === undefined) {
-                displayMessage.push({ message: 'Failed to get token ID.', type: 'error' });
+                setDisplayMessage([...displayMessage, { message: 'Failed to get token ID.', type: 'error' }]);
                 return;
             }
             setSuccessTokenId(tokenId);
 
-
             const addResult = await addBase64ToFirestore(canvasDataURL);
             if (!addResult.success) {
-                displayMessage.push({ message: 'Failed to add Opepen to Base64 database.', type: 'error' });
+                setDisplayMessage([...displayMessage, { message: 'Failed to add Opepen to Base64 database.', type: 'error' }]);
                 return;
             }
 
@@ -459,7 +474,7 @@ const Blint = () => {
         } catch (error) {
             setLoading(false);
             console.error('Uploading and minting:', error);
-            displayMessage.push({ message: 'There was an issue with uploading and minting, Please try again.', type: 'error' });
+            setDisplayMessage([...displayMessage, { message: 'There was an issue with uploading and minting, Please try again.', type: 'error' }]);
         }
     };
 
@@ -472,11 +487,17 @@ const Blint = () => {
         setDisplayMessage([]);
     };
 
+    useEffect(() => {
+        if (user) {
+            setShowModal(false);
+        }
+    }, [user]);
+
     return (
         <div className={styles.container}>
             <Navbar />
             {displayMessage && displayMessage.length > 0 && (
-                <BlintError messages={displayMessage} onClose={handleClose} />
+                <BlintDisplayMessage messages={displayMessage} clearMessage={clearMessage} />
             )}
             {OpepenGridTop}
             {loading ? <div className={styles.loading}>Loading . . .</div> : null}
@@ -551,6 +572,14 @@ const Blint = () => {
                     </div>
                 </div>
             }
+            {showModal && (
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <h2>Sign in to mint your NFT</h2>
+                        <button onClick={handleLogin} className={styles.actionButton}>Sign in</button>
+                    </div>
+                </div>
+            )}
             <div className={styles.bottomContainer}>
                 {OpepenGridBottom}
             </div>
@@ -559,5 +588,3 @@ const Blint = () => {
 };
 
 export default Blint;
-
-

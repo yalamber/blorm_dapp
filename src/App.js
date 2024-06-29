@@ -6,7 +6,6 @@ import Transfer from './pages/Transfer';
 import Blint from './pages/Blint';
 import Blap from './pages/Blap';
 import Profile from './pages/Profile';
-import Navbar from './components/Navbar'; // Import Navbar
 import './styles/App.css';
 import { AuthProvider } from './context/AuthContext';
 
@@ -14,7 +13,6 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <Navbar /> {/* Add Navbar here */}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/transfer" element={<Transfer />} />

@@ -8,7 +8,6 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 1002;
 }
 
 .homeBg {
@@ -17,7 +16,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 1001;
+  z-index: -1;
 }
 
 .center {
@@ -139,3 +138,4 @@
   box-shadow: #D6D6E7 0 3px 7px inset;
   transform: translateY(2px);
 }
+
