@@ -14,7 +14,7 @@ const BlintCongrats = ({ txHash, tokenId, openseaURL, nft }) => {
                 <div className={styles.leftPanel}>
                     {/* Render NftCard and pass the nft prop */}
                     <div className={styles.blintImageContainer}>
-                        {nft && <NftCard nft={nft} />}
+                        {nft && <NftCard nft={nft} width={20} />}
                     </div>
                 </div>
                 <div className={styles.rightPanel}>
