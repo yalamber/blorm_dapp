@@ -426,17 +426,19 @@ const Blint = () => {
         setDisplayMessage((prevMessages) => prevMessages.filter((_, i) => i !== index));
     };
 
+    const [nft, setNft] = useState(null);
+    
     const handleUploadAndMint = async () => {
         if (!user) {
             setShowModal(true);
             return;
         }
-
+    
         if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor || !selectedChain) {
             setDisplayMessage([...displayMessage, { message: 'Please fill in all colors and select a chain.', type: 'error' }]);
             return;
         }
-
+    
         try {
             setLoading(true);
             setTokenUrl('Loading...');
@@ -445,11 +447,11 @@ const Blint = () => {
                 setDisplayMessage([...displayMessage, { message: 'Looks like this Opepen has been minted already, please generate again!', type: 'error' }]);
                 return;
             }
-
+    
             const uri = await UploadToIPFS(canvasDataURL);
             const updatedMetadata = { ...metadata, image: uri };
             setMetadata(updatedMetadata);
-
+    
             const txResponse = await mintToken(updatedMetadata, selectedChain);
             const tokenId = txResponse[0];
             const txHash = txResponse[1];
@@ -459,24 +461,28 @@ const Blint = () => {
                 return;
             }
             setSuccessTokenId(tokenId);
-
+    
             const addResult = await addBase64ToFirestore(canvasDataURL);
             if (!addResult.success) {
                 setDisplayMessage([...displayMessage, { message: 'Failed to add Opepen to Base64 database.', type: 'error' }]);
                 return;
             }
-
+    
             const url = `${selectedChain.opensea}/${selectedChain.contractAddress}/${tokenId}`;
             setOpenseaURL(url);
             setTokenUrl(url);
             setLoading(false);
             setShowCongrats(true);
+    
+            // Update nft state with tokenId and metadata
+            setNft({ metadata: updatedMetadata, tokenId, chain: selectedChain.name, chainId: selectedChain.chainID });
         } catch (error) {
             setLoading(false);
             console.error('Uploading and minting:', error);
             setDisplayMessage([...displayMessage, { message: 'There was an issue with uploading and minting, Please try again.', type: 'error' }]);
         }
     };
+    
 
     const testOptions = ['Option 1', 'Option 2', 'Option 3'];
 
@@ -506,12 +512,7 @@ const Blint = () => {
                     txHash={successTxHash}
                     tokenId={successTokenId}
                     openseaURL={openseaURL}
-                    nft={{
-                        metadata: { image: canvasDataURL, name: 'Blint' },
-                        tokenId: successTokenId,
-                        chain: selectedChain.name,
-                        chainId: selectedChain.chainID
-                    }}
+                    nft={nft}
                 />
             ) :
 
