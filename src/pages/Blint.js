@@ -398,6 +398,14 @@ const Blint = () => {
         setCanvasDataURL(canvas.toDataURL('image/png'));
     };
 
+    const isCanvasEmpty = (canvas) => {
+        const ctx = canvas.getContext('2d');
+        const pixelBuffer = new Uint32Array(
+            ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+        );
+        return !pixelBuffer.some(color => color !== 0);
+    };    
+
     const renderCanvas = () => {
         if (!backgroundColor || !gradientColors.primary || !gradientColors.secondary) {
             setDisplayMessage([...displayMessage, { message: 'Please fill in all colors.', type: 'error' }]);
@@ -407,8 +415,19 @@ const Blint = () => {
         if (canvas) {
             const ctx = canvas.getContext('2d');
             renderLayers(ctx);
+    
+            // Check if the canvas is empty after rendering
+            const isEmpty = isCanvasEmpty(canvas);
+            setIsCanvasValid(!isEmpty);
+    
+            if (!isEmpty) {
+                setCanvasDataURL(canvas.toDataURL('image/png'));
+            } else {
+                setCanvasDataURL('');
+            }
         }
     };
+    
 
 
     const [successTxHash, setSuccessTxHash] = useState('');
@@ -498,6 +517,8 @@ const Blint = () => {
             setShowModal(false);
         }
     }, [user]);
+    
+    const [isCanvasValid, setIsCanvasValid] = useState(false);
 
     return (
         <div className={styles.container}>
@@ -514,12 +535,10 @@ const Blint = () => {
                     openseaURL={openseaURL}
                     nft={nft}
                 />
-            ) :
-
+            ) : (
                 <div className={styles.middleContainer}>
                     <div className={styles.sentence}>
-                        <div>
-                        </div>
+                        <div></div>
                         <div>
                             <span>I want to mint a</span>
                             <input
@@ -579,13 +598,15 @@ const Blint = () => {
                             <div className={styles.generateButtonContainer}>
                                 <button className={styles.actionButton} onClick={renderCanvas}>Generate</button>
                             </div>
-                            <div className={styles.mintButtonContainer}>
-                                <button className={styles.actionButton} onClick={handleUploadAndMint}>Mint</button>
-                            </div>
+                            {isCanvasValid && (
+                                <div className={styles.uploadButtonContainer}>
+                                    <button className={styles.actionButton} onClick={handleUploadAndMint}>Mint</button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
-            }
+            )}
             {showModal && (
                 <div className={styles.modal}>
                     <div className={styles.modalContent}>
@@ -598,7 +619,7 @@ const Blint = () => {
                 {OpepenGridBottom}
             </div>
         </div>
-    );
+    );    
 };
 
 export default Blint;

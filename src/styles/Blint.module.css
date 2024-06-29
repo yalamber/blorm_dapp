@@ -9,15 +9,15 @@
     padding-top: 7vh;
     box-sizing: border-box;
     overflow: hidden;
-  }
+}
 
 .loading {
     width: 100vw;
-    min-height:100vh;
+    min-height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
-    background : rgba(0,0,0,0.7);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -48,9 +48,12 @@
     overflow: hidden;
     white-space: nowrap;
     color: rgba(0, 0, 0, 0.7);
-    width: auto; /* Adjust width automatically */
-    min-width: 80px; /* Minimum width */
-    box-sizing: content-box; /* Ensure padding is not counted in width */
+    width: auto;
+    /* Adjust width automatically */
+    min-width: 80px;
+    /* Minimum width */
+    box-sizing: content-box;
+    /* Ensure padding is not counted in width */
     caret-color: rgba(0, 0, 0, 0.7);
 }
 
@@ -98,7 +101,7 @@
     flex-direction: column;
 }
 
-.canvasInner{
+.canvasInner {
     width: 400px;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
     height: 400px;
@@ -106,15 +109,14 @@
 
 .buttonsContainer {
     display: flex;
-    justify-content: center;
-    width: 100%;
+    justify-content: space-evenly;
+    width: 50vw;
     align-items: center;
     height: 10vh;
 }
 
-.generateButtonContainer{
-    width: 40%;
-    margin-left: 50px;
+.generateButtonContainer {
+    width: 18vw;
 }
 
 .chainSelect {
@@ -134,54 +136,58 @@
 }
 
 .mintButtonContainer {
-    width: 25%;
+    width: 35vw;
 }
 
 .actionButton {
-  align-items: center;
-  appearance: none;
-  background-color: #222;
-  border-radius: 15px;
-  border-width: 0;
-  box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px,rgba(45, 35, 66, 0.3) 0 7px 13px -3px,#D6D6E7 0 -3px 0 inset;
-  box-sizing: border-box;
-  color: white;
-  cursor: pointer;
-  display: inline-flex;
-  font-family: "Chakra Petch",monospace;
-  height: 48px;
-  justify-content: center;
-  line-height: 1;
-  list-style: none;
-  overflow: hidden;
-  padding-left: 16px;
-  padding-right: 16px;
-  position: relative;
-  text-align: left;
-  text-decoration: none;
-  transition: box-shadow .15s,transform .15s;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  white-space: nowrap;
-  will-change: box-shadow,transform;
-  font-size: 18px;
-  font-weight: bold;
-  width: 80%;
+    width: 100%;
+    min-width: 18vw;
+    align-items: center;
+    appearance: none;
+    background-color: #222;
+    border-radius: 15px;
+    border-width: 0;
+    box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+    box-sizing: border-box;
+    color: white;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: "Chakra Petch", monospace;
+    height: 48px;
+    justify-content: center;
+    line-height: 1;
+    list-style: none;
+    overflow: hidden;
+    padding-left: 16px;
+    padding-right: 16px;
+    position: relative;
+    text-align: left;
+    text-decoration: none;
+    transition: box-shadow .15s, transform .15s;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: nowrap;
+    will-change: box-shadow, transform;
+    font-size: 18px;
+    font-weight: bold;
 }
 
-.actionButton:focus, .chainSelect:focus {
-  box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+.actionButton:focus,
+.chainSelect:focus {
+    box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
 }
 
-.actionButton:hover, .chainSelect:hover {
-  box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
-  transform: translateY(-2px);
+.actionButton:hover,
+.chainSelect:hover {
+    box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+    transform: translateY(-2px);
 }
 
-.actionButton:active, .chainSelect:active{
-  box-shadow: #D6D6E7 0 3px 7px inset;
-  transform: translateY(2px);
+.actionButton:active,
+.chainSelect:active {
+    box-shadow: #D6D6E7 0 3px 7px inset;
+    transform: translateY(2px);
 }
 
 .bottomContainer {
@@ -206,11 +212,11 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
-  }
-  
-  .modalContent {
+}
+
+.modalContent {
     background-color: #fff;
     padding: 20px;
     border-radius: 20px;
     text-align: center;
-  }
+}
