@@ -5,7 +5,7 @@ import colorEmbeddings from '../utils/colorEmbeddings.json';
 import styles from '../styles/Blint.module.css';
 import UploadToIPFS from '../utils/UploadToIPFS.js';
 import { checkBase64Exists, addBase64ToFirestore } from '../utils/firestoreUtils.js';
-import { mintToken } from '../utils/blockchainUtils.js';
+import { mintToken } from '../utils/mintToken.js';
 import FuzzySet from 'fuzzyset.js';
 import { Link } from 'react-router-dom';
 import BlintCongrats from '../components/BlintCongrats.js';
