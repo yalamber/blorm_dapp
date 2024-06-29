@@ -1,7 +1,7 @@
 // src/utils/firebase.js
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth, signInWithCustomToken } from 'firebase/auth';
+import { getAuth, signInWithCustomToken, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 const firebaseConfig = {
@@ -18,5 +18,12 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const functions = getFunctions(app);
-
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    // Now the user's session will persist across refreshes
+  })
+  .catch((error) => {
+    console.error('Error setting persistence:', error);
+  });
 export { db, auth, functions, signInWithCustomToken, httpsCallable };
+

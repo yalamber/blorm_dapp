@@ -16,11 +16,24 @@
   box-sizing: border-box;
 }
 
+.navbarLinkTag {
+  text-decoration: none;
+  color: #000;
+  display: flex;
+  align-items: center;
+  height: 100%; /* Ensures it spans the full height of the navbar */
+  flex-direction: row;
+  text-decoration: none;
+  color: #000;
+}
+
 .navbarLogo {
   display: flex;
   align-items: center;
   height: 100%; /* Ensures it spans the full height of the navbar */
   flex-direction: row;
+  text-decoration: none;
+  color: #000;
 }
 
 .logoText {
@@ -33,6 +46,7 @@
   margin: 0;
   display: flex;
   align-items: center;
+  text-decoration: none;
 }
 
 .logoImage {
@@ -40,25 +54,44 @@
   margin-right: 1rem; /* Space between logo and text */
 }
 
-.navbar-links {
+.navbarLinks {
   display: flex;
+  align-items: center;
   gap: 2rem; /* Adjust space between links */
 }
 
-.navbar-links a {
+.navbarLinks a {
   text-decoration: none;
-  color: #000; /* Change text color to black */
-  font-size: 1.2rem; /* Adjust font size */
-  font-family: 'Arial', sans-serif; /* Change to a similar font */
-  text-transform: uppercase; /* Make text uppercase */
+  color: #000; 
+  font-size: 1.2rem;
+  font-family: 'Chakra Petch', sans-serif; 
+  text-transform: uppercase; 
 }
 
-.navbar-links a:hover {
+.navbarLinks a:hover {
   text-decoration: underline;
 }
 
 .logoLink {
   width: auto;
   height: 3vh;
-  margin-right: 3vw;
+}
+
+.profileContainer {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.profileImage {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.walletAddress {
+  font-size: 14px;
+  color: #333;
 }
