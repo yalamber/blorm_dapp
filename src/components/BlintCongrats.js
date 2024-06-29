@@ -1,22 +1,38 @@
 import React from 'react';
 import styles from '../styles/BlintCongrats.module.css';
+import logo from '../images/logo.png';
+import NftCard from './NftCard'; // Import the NftCard component
+import { Link } from 'react-router-dom';
 
-const BlintCongrats = ({ txHash, tokenId, openseaURL }) => {
+
+const BlintCongrats = ({ txHash, tokenId, openseaURL, nft }) => {
+
     return (
         <div className={styles.container}>
-            <div className={styles.backgroundImage}>
-            </div>
+            <div className={styles.backgroundImage}></div>
             <div className={styles.centerContainer}>
-                <h1 className={styles.title}>Congratulations!</h1>
-                <h2 className={styles.subtitle}>Your Blint has been minted!</h2>
-                <div className={styles.txHashContainer}>
-                    <p className={styles.txHash}>Transaction Hash: {txHash}</p>
-                    <p className={styles.txHash}>Token ID: {tokenId}</p>
-                    <p className={styles.txHash}>View on OpenSea: <a href={openseaURL} target="_blank" rel="noreferrer">{openseaURL}</a></p>
+                <div className={styles.leftPanel}>
+                    {/* Render NftCard and pass the nft prop */}
+                    <div className={styles.blintImageContainer}>
+                        {nft && <NftCard nft={nft} />}
                     </div>
+                </div>
+                <div className={styles.rightPanel}>
+                    <h1 className={styles.title}>Congrats On Blinting</h1>
+                    <p className={styles.subtitle}>
+                        Your opepen is ready for life. <br />
+                        Continue your onchain journey. <br />
+                        This is only one blorm of many to come.
+                    </p>
+                    <div className={styles.callToAction}>
+                        <Link to="/profile">
+                            <button className={styles.actionButton}> See Profile → </button>
+                        </Link>
+                        <img src={logo} className={styles.callToActionLogo}></img>
+                    </div>
+                </div>
             </div>
-        </div>
+        </div >
     );
 }
-
 export default BlintCongrats;

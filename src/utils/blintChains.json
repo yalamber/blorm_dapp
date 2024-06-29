@@ -9,7 +9,8 @@
         "id": 1,
         "token": "ETH",
         "label": "Ethereum",
-        "rpcUrl": "https://eth.llamarpc.com"
+        "rpcUrl": "https://eth.llamarpc.com",
+        "image": "https://cdn.worldvectorlogo.com/logos/ethereum-eth.svg"
     },
     "84532": {
         "name": "Base Sepolia",
@@ -21,7 +22,8 @@
         "id": 84532,
         "token": "ETH",
         "label": "Base Sepolia",
-        "rpcUrl": "https://sepolia.base.org"
+        "rpcUrl": "https://sepolia.base.org",
+        "image": "https://avatars.githubusercontent.com/u/108554348?v=4"
     },
     "11155111": {
         "name": "Sepolia",
@@ -33,6 +35,7 @@
         "id": 11155111,
         "token": "ETH",
         "label": "Sepolia",
-        "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com"
+        "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
+        "image": "https://cdn.worldvectorlogo.com/logos/ethereum-eth.svg"
     }
 }

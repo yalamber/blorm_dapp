@@ -10,10 +10,11 @@ import AuthButton from '../components/AuthButton';
 import editIcon from '../images/edit-pen.png';
 
 const Profile = () => {
+  const [chainsWithNfts, setChainsWithNfts] = useState([]);
   const { user, walletAddress, profile, updateUserProfile } = useAuth();
   const [localProfile, setLocalProfile] = useState(profile);
   const [editing, setEditing] = useState(false);
-  const [nftData, setNftData] = useState({});
+  const [nftData, setNftData] = useState([]);
   const [loadingNfts, setLoadingNfts] = useState(false); // Added state for loading status
   const [showModal, setShowModal] = useState(false);
 
@@ -27,43 +28,49 @@ const Profile = () => {
     }
   }, [walletAddress]);
 
-  // Modify the fetchNfts function to collect all NFTs into an array
-const fetchNfts = async () => {
-  setLoadingNfts(true);
-  const allNfts = [];
-  for (const chainId in blintChains) {
-    const chain = blintChains[chainId];
-    const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
-    const contract = new ethers.Contract(
-      chain.contractAddress,
-      [
-        'function getTokensOfOwner(address owner) view returns (uint256[] memory)',
-        'function tokenURI(uint256 tokenId) view returns (string memory)'
-      ],
-      provider
-    );
-
-    try {
-      const tokens = await contract.getTokensOfOwner(walletAddress);
-      const nfts = await Promise.all(
-        tokens.map(async (token) => {
-          const tokenId = token.toString();
-          const tokenUri = await contract.tokenURI(tokenId);
-          const response = await fetch(tokenUri);
-          const metadata = await response.json();
-          return { tokenId, tokenUri, metadata, chain: chain.name, chainId: chainId };
-        })
+  const fetchNfts = async () => {
+    setLoadingNfts(true);
+    const allNfts = [];
+    const chainsWithNfts = new Set();
+  
+    for (const chainId in blintChains) {
+      const chain = blintChains[chainId];
+      const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
+      const contract = new ethers.Contract(
+        chain.contractAddress,
+        [
+          'function getTokensOfOwner(address owner) view returns (uint256[] memory)',
+          'function tokenURI(uint256 tokenId) view returns (string memory)'
+        ],
+        provider
       );
-      allNfts.push(...nfts);
-    } catch (error) {
-      console.error(`Error fetching NFTs on ${chain.name}:`, error);
+  
+      try {
+        const tokens = await contract.getTokensOfOwner(walletAddress);
+        const nfts = await Promise.all(
+          tokens.map(async (token) => {
+            const tokenId = token.toString();
+            const tokenUri = await contract.tokenURI(tokenId);
+            const response = await fetch(tokenUri);
+            const metadata = await response.json();
+            return { tokenId, tokenUri, metadata, chain: chain.name, chainId: chainId };
+          })
+        );
+        if (nfts.length > 0) {
+          chainsWithNfts.add(chainId);
+        }
+        allNfts.push(...nfts);
+      } catch (error) {
+        console.error(`Error fetching NFTs on ${chain.name}:`, error);
+      }
     }
-  }
-
-  setNftData(allNfts);  // Set the collected NFTs into the state as an array
-  setLoadingNfts(false);
-  console.log('NFT Data:', allNfts);
-};
+  
+    setNftData(allNfts);  // Set the collected NFTs into the state as an array
+    setChainsWithNfts([...chainsWithNfts]);  // Set the chains with NFTs into the state as an array
+    setLoadingNfts(false);
+    console.log('NFT Data:', allNfts);
+  };
+  
 
   
   const handleSampleClick = () => {
@@ -105,9 +112,9 @@ const fetchNfts = async () => {
   const options = Object.values(nftData).flat();
 
   const sampleProfile = {
-    name: "BLORM",
-    bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ac libero at nunc.",
-    profilePicture: "https://gateway.pinata.cloud/ipfs/QmbP6h1DV7aUDt6oHe1q6dEua5GkXmpfKSaVab8UFeoE1o"
+    name: "BLORM User",
+    bio: "We are focusing on building a conglomerate aggregator to create the easiest and most affordable way to send information onchain",
+    profilePicture: "https://gateway.pinata.cloud/ipfs/QmY1HTnkpzJUFVZ9QWo1j51w88NZsV5ZpA32dtv4At9gki"
   };
 
   if (!user || !localProfile.eth_address) {
@@ -128,7 +135,7 @@ const fetchNfts = async () => {
         {showModal && (
           <div className={styles.modal}>
             <div className={styles.modalContent}>
-              <h2>Sign in to view your profile</h2>
+              <h2>Sign In To View Your Profile</h2>
               <AuthButton />
             </div>
           </div>
@@ -137,24 +144,31 @@ const fetchNfts = async () => {
     );
   }
 
+
   return (
     <div className={styles.container}>
       <Navbar />
       <div className={styles.profileTop}>
+        <div className={styles.chainIconsContainer}>
+          {chainsWithNfts.map(chainId => {
+            const chain = blintChains[chainId];
+            return (
+              <img key={chainId} src={chain.image} alt={chain.name} className={styles.chainIcon} />
+            );
+          })}
+        </div>
         <div className={styles.profilePicture}>
           {localProfile.profilePicture && (
             <img src={localProfile.profilePicture} alt="Profile" className={styles.profileImage} />
           )}
           <img src={editIcon} alt="Edit" className={styles.editIcon} onClick={handleEditClick} />
         </div>
-  
         <div className={styles.profileName}>
           <span>{localProfile.name}</span>
         </div>
         <div className={styles.profileDisplayField}>
           <span>{localProfile.bio}</span>
         </div>
-  
         <div className={`${styles.editPanel} ${editing ? styles.open : ''}`}>
           <div className={styles.editContent}>
             <h2 className={styles.editContentTitle}>Edit Profile</h2>
@@ -181,9 +195,7 @@ const fetchNfts = async () => {
           </div>
         </div>
       </div>
-  
       <hr className={styles.divider} />
-  
       <div className={styles.nftData}>
         {loadingNfts ? (
           <div className={styles.loadingMessage}>Fetching NFTs...</div>
@@ -200,7 +212,7 @@ const fetchNfts = async () => {
         )}
       </div>
     </div>
-  );
+  );  
 }
   
 export default Profile;

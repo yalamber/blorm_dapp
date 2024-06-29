@@ -1,52 +1,52 @@
 .dropdown {
-    position: relative;
-    width: 50%;
-  }
-  
-  .selected {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: #fff;
-  }
-  
-  .options {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #fff;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-  }
-  
-  .option {
-    padding: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-  }
-  
-  .option:hover {
-    background-color: #f0f0f0;
-  }
-  
-  .optionContent {
-    display: flex;
-    align-items: center;
-  }
-  
-  .nftOptionImage {
-    width: 30px;
-    height: 30px;
-    margin-right: 10px;
-    object-fit: cover;
-    border-radius: 5px;
-  }
-  
+  position: relative;
+  width: 50%;
+}
+
+
+.selected {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #fff;
+}
+
+.options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 2000;
+}
+
+.option {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.option:hover {
+  background-color: #f0f0f0;
+}
+
+.optionContent {
+  display: flex;
+  align-items: center;
+}
+
+.nftOptionImage {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  object-fit: cover;
+  border-radius: 5px;
+}

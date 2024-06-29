@@ -123,10 +123,10 @@ export const AuthProvider = ({ children }) => {
           // Create the profile with eth_address set to the UID
           await setDoc(userProfileRef, {
             eth_address: uid,
-            name: '',
-            bio: '',
+            name: 'BLORM User',
+            bio: 'We are focusing on building a conglomerate aggregator to create the easiest and most affordable way to send information onchain',
             sol_address: '',
-            profilePicture: '',
+            profilePicture: 'https://gateway.pinata.cloud/ipfs/QmY1HTnkpzJUFVZ9QWo1j51w88NZsV5ZpA32dtv4At9gki',
           });
         }
 
