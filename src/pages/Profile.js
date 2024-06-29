@@ -27,41 +27,44 @@ const Profile = () => {
     }
   }, [walletAddress]);
 
-  const fetchNfts = async () => {
-    setLoadingNfts(true); // Set loading status to true when starting to fetch
-    const nftData = {};
-    for (const chainId in blintChains) {
-      const chain = blintChains[chainId];
-      const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
-      const contract = new ethers.Contract(
-        chain.contractAddress,
-        [
-          'function getTokensOfOwner(address owner) view returns (uint256[] memory)',
-          'function tokenURI(uint256 tokenId) view returns (string memory)'
-        ],
-        provider
+  // Modify the fetchNfts function to collect all NFTs into an array
+const fetchNfts = async () => {
+  setLoadingNfts(true);
+  const allNfts = [];
+  for (const chainId in blintChains) {
+    const chain = blintChains[chainId];
+    const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
+    const contract = new ethers.Contract(
+      chain.contractAddress,
+      [
+        'function getTokensOfOwner(address owner) view returns (uint256[] memory)',
+        'function tokenURI(uint256 tokenId) view returns (string memory)'
+      ],
+      provider
+    );
+
+    try {
+      const tokens = await contract.getTokensOfOwner(walletAddress);
+      const nfts = await Promise.all(
+        tokens.map(async (token) => {
+          const tokenId = token.toString();
+          const tokenUri = await contract.tokenURI(tokenId);
+          const response = await fetch(tokenUri);
+          const metadata = await response.json();
+          return { tokenId, tokenUri, metadata, chain: chain.name, chainId: chainId };
+        })
       );
-  
-      try {
-        const tokens = await contract.getTokensOfOwner(walletAddress);
-        nftData[chainId] = await Promise.all(
-          tokens.map(async (token) => {
-            const tokenId = token.toString();
-            const tokenUri = await contract.tokenURI(tokenId);
-            const response = await fetch(tokenUri);
-            const metadata = await response.json();
-            return { tokenId, tokenUri, metadata, chain: chain.name };
-          })
-        );
-      } catch (error) {
-        console.error(`Error fetching NFTs on ${chain.name}:`, error);
-      }
+      allNfts.push(...nfts);
+    } catch (error) {
+      console.error(`Error fetching NFTs on ${chain.name}:`, error);
     }
-  
-    setNftData(nftData);
-    setLoadingNfts(false); // Set loading status to false after fetching is done
-    console.log('NFT Data:', nftData);
-  };
+  }
+
+  setNftData(allNfts);  // Set the collected NFTs into the state as an array
+  setLoadingNfts(false);
+  console.log('NFT Data:', allNfts);
+};
+
   
   const handleSampleClick = () => {
     setShowModal(true);
@@ -118,7 +121,7 @@ const Profile = () => {
           <div className={styles.profileName}>
             <span>{sampleProfile.name}</span>
           </div>
-          <div className={styles.profileField}>
+          <div className={styles.profileDisplayField}>
             <span>{sampleProfile.bio}</span>
           </div>
         </div>
@@ -144,26 +147,26 @@ const Profile = () => {
           )}
           <img src={editIcon} alt="Edit" className={styles.editIcon} onClick={handleEditClick} />
         </div>
-
+  
         <div className={styles.profileName}>
           <span>{localProfile.name}</span>
         </div>
-        <div className={styles.profileField}>
+        <div className={styles.profileDisplayField}>
           <span>{localProfile.bio}</span>
         </div>
-
+  
         <div className={`${styles.editPanel} ${editing ? styles.open : ''}`}>
           <div className={styles.editContent}>
-            <h2>Edit Profile</h2>
-            <div className={styles.profileField}>
-              <label>Name:</label>
-              <input type="text" name="name" value={localProfile.name} onChange={handleChange} />
+            <h2 className={styles.editContentTitle}>Edit Profile</h2>
+            <div className={styles.profileFieldContainer}>
+              <label>NAME: </label>
+              <input className={styles.profileField} type="text" name="name" value={localProfile.name} onChange={handleChange} placeholder='Enter name...'/>
             </div>
-            <div className={styles.profileField}>
-              <label>Bio:</label>
-              <input type="text" name="bio" value={localProfile.bio} onChange={handleChange} />
+            <div className={styles.profileFieldContainer}>
+              <label>BIO: </label>
+              <input className={styles.profileField} type="text" name="bio" value={localProfile.bio} onChange={handleChange} placeholder='Enter bio...'/>
             </div>
-            <div className={styles.profileField}>
+            <div className={styles.profileFieldContainer}>
               <label>Profile Picture:</label>
               <ProfilePicDropdown
                 options={options}
@@ -171,35 +174,33 @@ const Profile = () => {
                 onChange={handleProfilePictureChange}
               />
             </div>
-            <button className={styles.actionButton} onClick={handleSave}>Save</button>
-            <button className={styles.actionButton} onClick={() => setEditing(false)}>Cancel</button>
+            <div className={styles.profileFieldContainer}>
+              <button className={styles.actionButton} onClick={handleSave}>Save</button>
+              <button className={styles.actionButton} onClick={() => setEditing(false)}>Cancel</button>
+            </div>
           </div>
         </div>
       </div>
-
+  
       <hr className={styles.divider} />
-
+  
       <div className={styles.nftData}>
-        {loadingNfts ? ( // Display loading message while fetching
+        {loadingNfts ? (
           <div className={styles.loadingMessage}>Fetching NFTs...</div>
         ) : (
-          Object.keys(nftData).length === 0 ? (
+          nftData.length === 0 ? (
             <div className={styles.noNftsMessage}>No NFTs found.</div>
           ) : (
-            Object.entries(nftData).map(([chain, nfts]) => (
-              <div key={chain} className={styles.chainSection}>
-                <div className={styles.nftGrid}>
-                  {nfts.map((nft, index) => (
-                    <NftCard key={index} nft={nft} chain={chain}/>
-                  ))}
-                </div>
-              </div>
-            ))
+            <div className={styles.nftGrid}>
+              {nftData.map((nft, index) => (
+                <NftCard key={index} nft={nft} />
+              ))}
+            </div>
           )
         )}
       </div>
     </div>
   );
-};
-
+}
+  
 export default Profile;
