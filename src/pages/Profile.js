@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import styles from '../styles/Profile.module.css';
+import { ethers } from 'ethers';
+import blintChains from '../utils/blintChains.json';
 
 const Profile = () => {
   const { user, walletAddress, profile, updateUserProfile } = useAuth();
   const [localProfile, setLocalProfile] = useState(profile);
   const [editing, setEditing] = useState(false);
+  const [nftData, setNftData] = useState({});
 
   useEffect(() => {
     setLocalProfile(profile);
@@ -23,6 +26,45 @@ const Profile = () => {
     await updateUserProfile(localProfile);
     setEditing(false);
   };
+
+  useEffect(() => {
+    if (walletAddress) {
+      fetchNfts();
+    }
+  }, [walletAddress]);
+
+  const fetchNfts = async () => {
+    const nftData = {};
+    for (const chainId in blintChains) {
+      const chain = blintChains[chainId];
+      const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
+      const contract = new ethers.Contract(
+        chain.contractAddress,
+        [
+          'function getTokensOfOwner(address owner) view returns (uint256[] memory)',
+          'function tokenURI(uint256 tokenId) view returns (string memory)'
+        ],
+        provider
+      );
+  
+      try {
+        const tokens = await contract.getTokensOfOwner(walletAddress);
+        nftData[chain.name] = await Promise.all(
+          tokens.map(async (token) => {
+            const tokenId = token.toString();
+            const tokenUri = await contract.tokenURI(tokenId);
+            return { tokenId, tokenUri };
+          })
+        );
+      } catch (error) {
+        console.error(`Error fetching NFTs on ${chain.name}:`, error);
+      }
+    }
+  
+    setNftData(nftData);
+    console.log('NFT Data:', nftData);
+  };
+  
 
   if (!user) {
     return <div>Please log in</div>;
@@ -72,6 +114,11 @@ const Profile = () => {
           <button onClick={handleSave}>Save</button>
           <button onClick={() => setEditing(false)}>Cancel</button>
         </div>
+      </div>
+
+      <div className={styles.nftData}>
+        <h2>NFTs</h2>
+        <pre>{JSON.stringify(nftData, null, 2)}</pre>
       </div>
     </div>
   );

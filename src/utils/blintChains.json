@@ -28,7 +28,7 @@
         "symbol": "ETH",
         "chainID": 11155111,
         "decimals": 18,
-        "contractAddress": "0x3830D9A6a9CfF25D731e74623c0aE722860C9b1e",
+        "contractAddress": "0xD19cAFa36c184bB01B6dAfdC7EFf224a3Cfce02D",
         "opensea": "https://testnets.opensea.io/assets/sepolia",
         "id": 11155111,
         "token": "ETH",
