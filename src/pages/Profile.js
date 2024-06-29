@@ -205,7 +205,7 @@ const Profile = () => {
           ) : (
             <div className={styles.nftGrid}>
               {nftData.map((nft, index) => (
-                <NftCard key={index} nft={nft} />
+                <NftCard key={index} nft={nft} width={28}/>
               ))}
             </div>
           )
