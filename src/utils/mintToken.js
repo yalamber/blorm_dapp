@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import Blop from './Blop4.json';
+import Blop from './Blop7.json';
 import UploadToIPFS from './UploadToIPFS';
 const chainListUrl = 'https://chainid.network/chains.json';
 
@@ -15,6 +15,11 @@ const fetchChainData = async () => {
 };
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const getLastTokenId = async (contract, address) => {
+    const tokens = await contract.getTokensOfOwner(address);
+    return tokens.length > 0 ? tokens[tokens.length - 1] : null;
+};
 
 export const mintToken = async (metadata, selectedChain) => {
     const chainData = await fetchChainData();
@@ -76,18 +81,10 @@ export const mintToken = async (metadata, selectedChain) => {
             value: mintFee,
         });
 
-        const gasPrice = (await provider.getFeeData()).gasPrice
-
-        // console.log('Gas estimate:', gasEstimate.toString());
-
-        const overrides = {
-            gasPrice: gasPrice, // 10 Gwei
-            gasLimit: gasEstimate, // Gas limit
-        };
+        const gasPrice = (await provider.getFeeData()).gasPrice;
 
         const transaction = await contract.mint(recipientAddress, metadataURI, {
             value: mintFee,
-            // ...overrides
         });
         const receipt = await transaction.wait();
 
@@ -115,7 +112,7 @@ export const mintToken = async (metadata, selectedChain) => {
 
             await delay(5000);
 
-            const latestTokenId = await contract.latestTokenMinted(recipientAddress);
+            const latestTokenId = await getLastTokenId(contract, recipientAddress);
             if (latestTokenId) {
                 console.log('Latest minted token ID:', latestTokenId.toString());
                 return [latestTokenId, txHash];
