@@ -21,17 +21,14 @@
     align-items: center;
     flex-direction: row;
     text-align: left;
-    background-image: url("../../public/gradient1.png");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
 }
 
 .centerContainer {
-    width: 50vw;
-    height: 40vh;
+    width: 70vw;
+    height: 50vh;
     display: flex;
-    justify-content: center;
+    flex-direction: row;
+    justify-content:space-between;
     align-items: center;
     background: white;
     margin-bottom: 5vh;
@@ -39,3 +36,203 @@
     border: 7px outset grey;
     box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.2);
 }
+
+.leftPanel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 30vw;
+    height: 30vw;
+    position: relative;
+    margin: 4vh 2vw 4vh 2vw;
+}
+
+
+.blintImage {
+    width: 20vw;
+    height: 20vh;
+    object-fit: cover;
+    margin-right: 5vw;
+}
+
+.rightPanel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    width: 50%;
+    height: 100%;
+    align-items: center;
+    padding-right: 5vw;
+}
+
+
+.corner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border: 1px solid black;
+    transform: rotate(45deg);
+  }
+  
+  .line {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    background: black;
+  }
+  
+  .lineTop,
+  .lineBottom {
+    height: 1px;
+    width: calc(100% - 60px); /* Shorten the lines */
+    left: 30px; /* Adjust alignment */
+  }
+  
+  .lineLeft,
+  .lineRight {
+    width: 1px;
+    height: calc(100% - 60px); /* Shorten the lines */
+    top: 30px; /* Adjust alignment */
+    flex-direction: column;
+  }
+  
+  .lineTop {
+    top: 0;
+  }
+  
+  .lineBottom {
+    bottom: 0;
+  }
+  
+  .lineLeft {
+    left: 0;
+  }
+  
+  .lineRight {
+    right: 0;
+  }
+  
+  .diamond {
+    width: 10px; /* Adjust the size for better alignment */
+    height: 10px; /* Adjust the size for better alignment */
+    background: black;
+    transform: rotate(45deg);
+    margin: -5px; /* Adjust margin to ensure no bleeding */
+  }
+  
+  .lineTop .diamond,
+  .lineBottom .diamond {
+    position: relative;
+    top: 0px; /* Adjust for diamond height */
+  }
+  
+  .lineLeft .diamond,
+  .lineRight .diamond {
+    position: relative;
+    left: 0px; /* Adjust for diamond width */
+  }
+  
+  .lineTop .diamond:first-child,
+  .lineBottom .diamond:first-child {
+    margin-left: 0; /* Remove extra spacing */
+  }
+  
+  .lineTop .diamond:last-child,
+  .lineBottom .diamond:last-child {
+    margin-right: 0; /* Remove extra spacing */
+  }
+  
+  .lineLeft .diamond:first-child,
+  .lineRight .diamond:first-child {
+    margin-top: 0; /* Remove extra spacing */
+  }
+  
+  .lineLeft .diamond:last-child,
+  .lineRight .diamond:last-child {
+    margin-bottom: 0; /* Remove extra spacing */
+  }
+  
+  .title {
+    font-size: 2rem;
+    font-weight: bolder;
+    margin: 0;
+    color: black;
+    text-decoration: underline;
+    text-transform: uppercase;
+    margin-top: 5vh;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 0;
+    color: black;
+    text-transform: uppercase;
+    margin-top: 10vh;
+  }
+
+.callToAction {
+    width: 90%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 7vh;
+    margin-top: 10vh; 
+}
+
+.callToActionLogo {
+    width: 3vw;
+    height: auto;
+    object-fit: cover;
+    margin-right: 5vw;
+}
+
+.actionButton {
+    align-items: center;
+    appearance: none;
+    background-color: #222;
+    border-radius: 15px;
+    border-width: 0;
+    box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px,rgba(45, 35, 66, 0.3) 0 7px 13px -3px,#D6D6E7 0 -3px 0 inset;
+    box-sizing: border-box;
+    color: white;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: "Chakra Petch",monospace;
+    height: 4vh;
+    justify-content: center;
+    line-height: 1;
+    list-style: none;
+    overflow: hidden;
+    padding-left: 16px;
+    padding-right: 16px;
+    position: relative;
+    text-align: left;
+    text-decoration: none;
+    transition: box-shadow .15s,transform .15s;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: nowrap;
+    will-change: box-shadow,transform;
+    font-size: 1rem;
+    font-weight: bold;
+    width: 15vw;
+  }
+  
+  .actionButton:focus, .chainSelect:focus {
+    box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+  }
+  
+  .actionButton:hover, .chainSelect:hover {
+    box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+    transform: translateY(-2px);
+  }
+  
+  .actionButton:active, .chainSelect:active{
+    box-shadow: #D6D6E7 0 3px 7px inset;
+    transform: translateY(2px);
+  }

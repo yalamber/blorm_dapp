@@ -501,7 +501,20 @@ const Blint = () => {
             )}
             {OpepenGridTop}
             {loading ? <div className={styles.loading}>Loading . . .</div> : null}
-            {showCongrats ? <BlintCongrats txHash={successTxHash} tokenId={successTokenId} openseaURL={openseaURL} /> :
+            {showCongrats ? (
+                <BlintCongrats
+                    txHash={successTxHash}
+                    tokenId={successTokenId}
+                    openseaURL={openseaURL}
+                    nft={{
+                        metadata: { image: canvasDataURL, name: 'Blint' },
+                        tokenId: successTokenId,
+                        chain: selectedChain.name,
+                        chainId: selectedChain.chainID
+                    }}
+                />
+            ) :
+
                 <div className={styles.middleContainer}>
                     <div className={styles.sentence}>
                         <div>

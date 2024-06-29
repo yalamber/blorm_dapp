@@ -1,25 +1,159 @@
 .card {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    overflow: hidden;
-    margin: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .image {
-    width: 100%;
-    height: auto;
-  }
-  
-  .details {
-    padding: 16px;
-  }
-  
-  .attributes {
-    margin-top: 10px;
-  }
-  
-  .attribute {
-    margin-bottom: 5px;
-  }
-  
+  position: relative;
+  border: 1px solid #ccc;
+  overflow: hidden;
+  margin: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+
+.border {
+  position: relative;
+  padding: 20px;
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.details {
+  padding: 1vh 4vw 0vh 2vw;
+  text-align: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px; /* Adjust gap between columns as needed */
+}
+
+.details2 {
+  padding: 0vh 4vw 0vh 2vw;
+  text-align: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px; /* Adjust gap between columns as needed */
+}
+
+.corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border: 1px solid black;
+  transform: rotate(45deg);
+}
+
+.line {
+  position: absolute;
+  display: flex;
+  justify-content: space-between;
+  background: black;
+}
+
+.lineTop,
+.lineBottom {
+  height: 1px;
+  width: calc(100% - 60px); /* Shorten the lines */
+  left: 30px; /* Adjust alignment */
+}
+
+.lineLeft,
+.lineRight {
+  width: 1px;
+  height: calc(100% - 60px); /* Shorten the lines */
+  top: 30px; /* Adjust alignment */
+  flex-direction: column;
+}
+
+.lineTop {
+  top: 0;
+}
+
+.lineBottom {
+  bottom: 0;
+}
+
+.lineLeft {
+  left: 0;
+}
+
+.lineRight {
+  right: 0;
+}
+
+.diamond {
+  width: 10px; /* Adjust the size for better alignment */
+  height: 10px; /* Adjust the size for better alignment */
+  background: black;
+  transform: rotate(45deg);
+  margin: -5px; /* Adjust margin to ensure no bleeding */
+}
+
+.lineTop .diamond,
+.lineBottom .diamond {
+  position: relative;
+  top: 0px; /* Adjust for diamond height */
+}
+
+.lineLeft .diamond,
+.lineRight .diamond {
+  position: relative;
+  left: 0px; /* Adjust for diamond width */
+}
+
+.lineTop .diamond:first-child,
+.lineBottom .diamond:first-child {
+  margin-left: 0; /* Remove extra spacing */
+}
+
+.lineTop .diamond:last-child,
+.lineBottom .diamond:last-child {
+  margin-right: 0; /* Remove extra spacing */
+}
+
+.lineLeft .diamond:first-child,
+.lineRight .diamond:first-child {
+  margin-top: 0; /* Remove extra spacing */
+}
+
+.lineLeft .diamond:last-child,
+.lineRight .diamond:last-child {
+  margin-bottom: 0; /* Remove extra spacing */
+}
+
+.chainIconsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 5vw;
+}
+
+.chainIcon {
+  width: 20px;
+  height: 20px;
+  margin: 0 5px;
+}
+
+.divider {
+  width: 60%;
+  height: 1px;
+  background: black;
+}
+
+.dividerContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cardBLINT {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0; /* Remove any margin */
+  padding: 0; /* Remove any padding */
+}
