@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import styles from '../styles/AuthButton.module.css';
 import { Link } from 'react-router-dom';
+import logoutIcon from '../images/logout.webp'
 
 const AuthButton = () => {
   const { walletAddress, profile, signOut, handleLogin, loading } = useAuth();
@@ -15,12 +16,12 @@ const AuthButton = () => {
     return (
       <div className={styles.authContainer}>
         <Link to="/profile" className={styles.authContainer}>
-          <span className={styles.walletAddress}>{abbreviateAddress(walletAddress)}</span>
+          <span className={styles.walletAddress}>{profile.name}</span>
           {profile.profilePicture && (
             <img src={profile.profilePicture} alt="Profile" className={styles.profileImage} />
           )}
         </Link>
-        <button onClick={signOut} className={styles.signOutButton}>Sign Out</button>
+        <img className={styles.signOutButton} onClick={signOut} src={logoutIcon}></img>
       </div>
     );
   }
