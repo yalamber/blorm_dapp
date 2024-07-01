@@ -8,12 +8,9 @@ import UploadToIPFS from '../utils/UploadToIPFS.js';
 import { checkBase64Exists, addBase64ToFirestore } from '../utils/firestoreUtils.js';
 import { mintToken } from '../utils/mintToken.js';
 import FuzzySet from 'fuzzyset.js';
-import { Link } from 'react-router-dom';
 import BlintCongrats from '../components/BlintCongrats.js';
 import OpepenGrid from '../components/OpepenGrid.js';
 import Navbar from '../components/Navbar.js';
-import blintChains from '../utils/blintChains.json';
-import BlintError from '../components/BlintError.js';
 import { useAuth } from '../context/AuthContext';
 import ChainDropdown from '../components/ChainDropdown.js';
 
@@ -54,7 +51,7 @@ const rgbArrayToHex = (rgb) => {
 };
 
 const Blint = () => {
-    const { user, handleLogin } = useAuth();
+    const { user, walletAddress, profile, handleLogin } = useAuth();
     const [showModal, setShowModal] = useState(false);
 
     const [displayMessage, setDisplayMessage] = useState([]);
@@ -447,7 +444,7 @@ const Blint = () => {
     const [nft, setNft] = useState(null);
 
     const handleUploadAndMint = async () => {
-        if (!user) {
+        if (!user || !walletAddress || !profile) {
             setShowModal(true);
             return;
         }
@@ -512,10 +509,10 @@ const Blint = () => {
     };
 
     useEffect(() => {
-        if (user) {
+        if (user && showModal) {
             setShowModal(false);
         }
-    }, [user]);
+    }, [user, profile, walletAddress]);
 
     const [isCanvasValid, setIsCanvasValid] = useState(false);
 
