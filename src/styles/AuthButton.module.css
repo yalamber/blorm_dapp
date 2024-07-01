@@ -1,6 +1,11 @@
 .authContainer {
   display: flex;
   align-items: center;
+  text-decoration: none;
+}
+
+.authContainer:hover {
+  text-decoration: none;
 }
 
 .profileImage {
@@ -9,6 +14,7 @@
   border-radius: 50%;
   object-fit: cover;
   margin-right: 1vw;
+  text-decoration: none;
 }
 
 .walletAddress {
@@ -17,9 +23,15 @@
   margin-right: 10px;
   font-weight: 600;
   min-width: fit-content;
+  text-decoration: none;
+}
+
+.walletAddress:hover {
+  text-decoration: none;
 }
 
 .loginButton {
+  text-decoration: none;
   align-items: center;
   appearance: none;
   background-color: #222;
@@ -54,16 +66,19 @@
 
 .loginButton:focus {
   box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+  text-decoration: none;
 }
 
 .loginButton:hover {
   box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
   transform: translateY(-2px);
+  text-decoration: none;
 }
 
 .loginButton:active {
   box-shadow: #D6D6E7 0 3px 7px inset;
   transform: translateY(2px);
+  text-decoration: none;
 }
 
 .loginButton:disabled {
@@ -77,4 +92,6 @@
   right: 1.25vw;
   width: .75vw;
   z-index: 10;
+  text-decoration: none;
 }
+
