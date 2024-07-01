@@ -1,70 +1,80 @@
 .authContainer {
-    display: flex;
-    align-items: center;
-  }
-  
-  .profileImage {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 10px;
-  }
-  
-  .walletAddress {
-    font-size: 14px;
-    color: #333;
-    margin-right: 10px;
-  }
-  
-  .signOutButton, .loginButton  {
-    align-items: center;
-    appearance: none;
-    background-color: #222;
-    border-radius: 15px;
-    border-width: 0;
-    box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px,rgba(45, 35, 66, 0.3) 0 7px 13px -3px,#D6D6E7 0 -3px 0 inset;
-    box-sizing: border-box;
-    color: white;
-    cursor: pointer;
-    display: inline-flex;
-    font-family: "Chakra Petch",monospace;
-    height: 4vh;
-    justify-content: center;
-    line-height: 1;
-    list-style: none;
-    overflow: hidden;
-    padding-left: 1vw;
-    padding-right: 1vw;
-    position: relative;
-    text-align: left;
-    text-decoration: none;
-    transition: box-shadow .15s,transform .15s;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    white-space: nowrap;
-    will-change: box-shadow,transform;
-    font-size: 1rem;
-    font-weight: bold;
-    width: 100%;
-  }
-  
-  .signOutButton:focus, .loginButton:focus {
-    box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
-  }
-  
-  .signOutButton:hover, .loginButton:hover {
-    box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
-    transform: translateY(-2px);
-  }
-  
-  .signOutButton:active, .loginButton:active{
-    box-shadow: #D6D6E7 0 3px 7px inset;
-    transform: translateY(2px);
-  }
+  display: flex;
+  align-items: center;
+}
 
-  .signOutButton:disabled, .loginButton:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
+.profileImage {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1vw;
+}
+
+.walletAddress {
+  font-size: 1rem;
+  color: black;
+  margin-right: 10px;
+  font-weight: 600;
+  min-width: fit-content;
+}
+
+.loginButton {
+  align-items: center;
+  appearance: none;
+  background-color: #222;
+  border-radius: 15px;
+  border-width: 0;
+  box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+  box-sizing: border-box;
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Chakra Petch", monospace;
+  height: 4vh;
+  justify-content: center;
+  line-height: 1;
+  list-style: none;
+  overflow: hidden;
+  padding-left: 1vw;
+  padding-right: 1vw;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transition: box-shadow .15s, transform .15s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+  will-change: box-shadow, transform;
+  font-size: 1rem;
+  font-weight: bold;
+  width: 100%;
+}
+
+.loginButton:focus {
+  box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+}
+
+.loginButton:hover {
+  box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+  transform: translateY(-2px);
+}
+
+.loginButton:active {
+  box-shadow: #D6D6E7 0 3px 7px inset;
+  transform: translateY(2px);
+}
+
+.loginButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.signOutButton, .signOutButton:active, .signOutButton:focus, .signOutButton:hover {
+  position: absolute;
+  bottom: .5vh;
+  right: 1.25vw;
+  width: .75vw;
+  z-index: 10;
+}

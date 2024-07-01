@@ -48,10 +48,17 @@
     margin: 4vh 2vw 4vh 2vw;
 }
 
+.blintImageContainer {
+    width: 25vw;
+    height: auto;
+    max-height: 45vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
 
 .blintImage {
-    width: 20vw;
-    height: 20vh;
     object-fit: cover;
     margin-right: 5vw;
 }
@@ -175,9 +182,9 @@
   }
 
 .callToAction {
-    width: 90%;
+    width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     height: 7vh;
     margin-top: 10vh; 
@@ -187,10 +194,11 @@
     width: 3vw;
     height: auto;
     object-fit: cover;
-    margin-right: 5vw;
+    margin-left: 5vw;
 }
 
 .actionButton {
+    margin-left: 6vw;
     align-items: center;
     appearance: none;
     background-color: #222;

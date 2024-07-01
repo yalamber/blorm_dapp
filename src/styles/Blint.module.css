@@ -8,7 +8,7 @@
     margin: 0;
     padding-top: 7vh;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: visible; /* Allow overflow to be visible */
 }
 
 .loading {
@@ -31,7 +31,6 @@
     height: fit-content;
     display: flex;
     justify-content: center;
-    align-items: center;
     flex-direction: row;
     text-align: left;
     overflow: hidden;
@@ -63,6 +62,15 @@
     font-style: italic;
 }
 
+.middleLeftContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 50vw;
+    height: fit-content;
+    margin-top: 8vh;
+}
+
 .sentence {
     display: flex;
     flex-direction: column;
@@ -73,22 +81,51 @@
     color: black;
     width: 50vw;
     padding-bottom: 10vh;
+    margin-left: 4vw;
+    position: relative; /* Ensure relative positioning to allow child absolute positioning */
+    z-index: 1; /* Ensure it's above other background elements */
 }
 
 .sentence div {
     display: flex;
     align-items: center;
     max-width: 50vw;
-    padding-left: 10vw;
     box-sizing: content-box;
     padding-right: 2vw;
+    padding-left: 2vw;
+    justify-content: flex-start;
+    position: relative; /* Ensure relative positioning to allow child absolute positioning */
 }
 
 .sentence span {
     margin-right: 0.5rem;
     margin-left: 0.5rem;
     min-width: fit-content;
+    white-space: nowrap;
 }
+
+.sentenceChain {
+    display: flex;
+    align-items: flex-start;
+    max-width: 50vw;
+    box-sizing: content-box;
+    padding-right: 2vw;
+    justify-content: flex-start;
+    position: relative; /* Ensure relative positioning to allow child absolute positioning */
+}
+
+.sentenceChainSpan {
+    margin-right: 0.5rem;
+    margin-left: 0.5rem;
+    min-width: fit-content;
+    white-space: nowrap;
+    position: absolute;
+    top: 0;
+    left: 2vw;
+}
+
+
+
 
 .canvasContainer {
     height: fit-content;

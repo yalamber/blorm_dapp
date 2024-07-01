@@ -84,9 +84,10 @@ const Profile = () => {
   const handleProfilePictureChange = (option) => {
     setLocalProfile((prevProfile) => ({
       ...prevProfile,
-      profilePicture: option.metadata.image
+      profilePicture: option.value === 'default' ? "https://gateway.pinata.cloud/ipfs/QmY1HTnkpzJUFVZ9QWo1j51w88NZsV5ZpA32dtv4At9gki" : option.metadata.image
     }));
   };
+  
 
   const handleEditClick = () => {
     if (user) {
@@ -109,11 +110,20 @@ const Profile = () => {
     setEditing(false);
   };
 
-  const options = Object.values(nftData).flat();
+  const options = [
+    { value: 'default', label: 'Default', metadata: { image: "https://gateway.pinata.cloud/ipfs/QmY1HTnkpzJUFVZ9QWo1j51w88NZsV5ZpA32dtv4At9gki" } },
+    ...nftData.map(nft => ({
+      value: nft.tokenId,
+      label: `${nft.chain} - Token ${nft.tokenId}`,
+      metadata: nft.metadata
+    }))
+  ];
+  
+  
 
   const sampleProfile = {
-    name: "BLORM User",
-    bio: "We are focusing on building a conglomerate aggregator to create the easiest and most affordable way to send information onchain",
+    name: 'BLORMER',
+    bio: 'BLORM INFORMATION ON CHAIN',
     profilePicture: "https://gateway.pinata.cloud/ipfs/QmY1HTnkpzJUFVZ9QWo1j51w88NZsV5ZpA32dtv4At9gki"
   };
 

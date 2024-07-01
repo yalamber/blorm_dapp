@@ -15,6 +15,7 @@ import Navbar from '../components/Navbar.js';
 import blintChains from '../utils/blintChains.json';
 import BlintError from '../components/BlintError.js';
 import { useAuth } from '../context/AuthContext';
+import ChainDropdown from '../components/ChainDropdown.js';
 
 const layers = [
     { id: 'layer1', label: 'Layer 1 (background)', type: 'gradient' },
@@ -404,7 +405,7 @@ const Blint = () => {
             ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer
         );
         return !pixelBuffer.some(color => color !== 0);
-    };    
+    };
 
     const renderCanvas = () => {
         if (!backgroundColor || !gradientColors.primary || !gradientColors.secondary) {
@@ -415,11 +416,11 @@ const Blint = () => {
         if (canvas) {
             const ctx = canvas.getContext('2d');
             renderLayers(ctx);
-    
+
             // Check if the canvas is empty after rendering
             const isEmpty = isCanvasEmpty(canvas);
             setIsCanvasValid(!isEmpty);
-    
+
             if (!isEmpty) {
                 setCanvasDataURL(canvas.toDataURL('image/png'));
             } else {
@@ -427,7 +428,7 @@ const Blint = () => {
             }
         }
     };
-    
+
 
 
     const [successTxHash, setSuccessTxHash] = useState('');
@@ -435,10 +436,8 @@ const Blint = () => {
     const [openseaURL, setOpenseaURL] = useState('');
     const [selectedChain, setSelectedChain] = useState('');
 
-    const handleChainSelection = (event) => {
-        const chainID = event.target.value;
-        const selectedChainObject = blintChains[chainID];
-        setSelectedChain(selectedChainObject);
+    const handleChainSelection = (chain) => {
+        setSelectedChain(chain);
     };
 
     const clearMessage = (index) => {
@@ -446,18 +445,18 @@ const Blint = () => {
     };
 
     const [nft, setNft] = useState(null);
-    
+
     const handleUploadAndMint = async () => {
         if (!user) {
             setShowModal(true);
             return;
         }
-    
+
         if (!gradientColors.primary || !gradientColors.secondary || !backgroundColor || !selectedChain) {
             setDisplayMessage([...displayMessage, { message: 'Please fill in all colors and select a chain.', type: 'error' }]);
             return;
         }
-    
+
         try {
             setLoading(true);
             setTokenUrl('Loading...');
@@ -466,11 +465,11 @@ const Blint = () => {
                 setDisplayMessage([...displayMessage, { message: 'Looks like this Opepen has been minted already, please generate again!', type: 'error' }]);
                 return;
             }
-    
+
             const uri = await UploadToIPFS(canvasDataURL);
             const updatedMetadata = { ...metadata, image: uri };
             setMetadata(updatedMetadata);
-    
+
             const txResponse = await mintToken(updatedMetadata, selectedChain);
             const tokenId = txResponse[0];
             const txHash = txResponse[1];
@@ -480,19 +479,19 @@ const Blint = () => {
                 return;
             }
             setSuccessTokenId(tokenId);
-    
+
             const addResult = await addBase64ToFirestore(canvasDataURL);
             if (!addResult.success) {
                 setDisplayMessage([...displayMessage, { message: 'Failed to add Opepen to Base64 database.', type: 'error' }]);
                 return;
             }
-    
+
             const url = `${selectedChain.opensea}/${selectedChain.contractAddress}/${tokenId}`;
             setOpenseaURL(url);
             setTokenUrl(url);
             setLoading(false);
             setShowCongrats(true);
-    
+
             // Update nft state with tokenId and metadata
             setNft({ metadata: updatedMetadata, tokenId, chain: selectedChain.name, chainId: selectedChain.chainID });
         } catch (error) {
@@ -501,7 +500,7 @@ const Blint = () => {
             setDisplayMessage([...displayMessage, { message: 'There was an issue with uploading and minting, Please try again.', type: 'error' }]);
         }
     };
-    
+
 
     const testOptions = ['Option 1', 'Option 2', 'Option 3'];
 
@@ -517,7 +516,7 @@ const Blint = () => {
             setShowModal(false);
         }
     }, [user]);
-    
+
     const [isCanvasValid, setIsCanvasValid] = useState(false);
 
     return (
@@ -537,57 +536,48 @@ const Blint = () => {
                 />
             ) : (
                 <div className={styles.middleContainer}>
-                    <div className={styles.sentence}>
-                        <div></div>
-                        <div>
-                            <span>I want to mint a</span>
-                            <input
-                                ref={(el) => (inputRefs.current['primary'] = el)}
-                                type="text"
-                                placeholder={gradientPlaceholder}
-                                onBlur={(e) => handleInputBlur(e, handleChangeGradientColor.bind(null, 'primary'))}
-                                onChange={handleInputChange}
-                                className={styles.colorInput}
-                            />
-                        </div>
-                        <div>
-                            <span>and</span>
-                            <input
-                                ref={(el) => (inputRefs.current['secondary'] = el)}
-                                type="text"
-                                placeholder={gradientPlaceholder2}
-                                onBlur={(e) => handleInputBlur(e, handleChangeGradientColor.bind(null, 'secondary'))}
-                                onChange={handleInputChange}
-                                className={styles.colorInput}
-                            />
-                            <span>Opepen</span>
-                        </div>
-                        <div>
-                            <span>with a</span>
-                            <input
-                                ref={(el) => (inputRefs.current['background'] = el)}
-                                type="text"
-                                placeholder={backgroundPlaceholder}
-                                onBlur={(e) => handleInputBlur(e, handleChangeBackgroundColor)}
-                                onChange={handleInputChange}
-                                className={styles.colorInput}
-                            />
-                            <span>background</span>
-                        </div>
-                        <div>
-                            <span>on </span>
-                            <select
-                                value={selectedChain ? selectedChain.chainID : ''}
-                                onChange={handleChainSelection}
-                                className={styles.chainSelect}
-                            >
-                                <option value="">Select Chain</option>
-                                {Object.entries(blintChains).map(([chainID, chain]) => (
-                                    <option key={chainID} value={chainID}>
-                                        {chain.name}
-                                    </option>
-                                ))}
-                            </select>
+                    <div className={styles.middleLeftContainer}>
+                        <div className={styles.sentence}>
+                            <div></div>
+                            <div>
+                                <span>I want to mint a</span>
+                                <input
+                                    ref={(el) => (inputRefs.current['primary'] = el)}
+                                    type="text"
+                                    placeholder={gradientPlaceholder}
+                                    onBlur={(e) => handleInputBlur(e, handleChangeGradientColor.bind(null, 'primary'))}
+                                    onChange={handleInputChange}
+                                    className={styles.colorInput}
+                                />
+                            </div>
+                            <div>
+                                <span>and</span>
+                                <input
+                                    ref={(el) => (inputRefs.current['secondary'] = el)}
+                                    type="text"
+                                    placeholder={gradientPlaceholder2}
+                                    onBlur={(e) => handleInputBlur(e, handleChangeGradientColor.bind(null, 'secondary'))}
+                                    onChange={handleInputChange}
+                                    className={styles.colorInput}
+                                />
+                                <span>Opepen</span>
+                            </div>
+                            <div>
+                                <span>with a</span>
+                                <input
+                                    ref={(el) => (inputRefs.current['background'] = el)}
+                                    type="text"
+                                    placeholder={backgroundPlaceholder}
+                                    onBlur={(e) => handleInputBlur(e, handleChangeBackgroundColor)}
+                                    onChange={handleInputChange}
+                                    className={styles.colorInput}
+                                />
+                                <span>background</span>
+                            </div>
+                            <div className={styles.sentenceChain}>
+                                <span className={styles.sentenceChainSpan}>on </span>
+                                <ChainDropdown label="Select Chain:" onSelectChain={handleChainSelection} />
+                            </div>
                         </div>
                     </div>
                     <div className={styles.canvasContainer}>
@@ -619,7 +609,7 @@ const Blint = () => {
                 {OpepenGridBottom}
             </div>
         </div>
-    );    
+    );
 };
 
 export default Blint;

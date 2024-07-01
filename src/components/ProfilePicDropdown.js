@@ -14,8 +14,8 @@ const ProfilePicDropdown = ({ options, value, onChange }) => {
       <div className={styles.selected} onClick={() => setIsOpen(!isOpen)}>
         {value ? (
           <div className={styles.optionContent}>
-            <img src={value.metadata.image} alt={`NFT ${value.tokenId}`} className={styles.nftOptionImage} />
-            {`${value.chain} - Token ${value.tokenId}`}
+            <img src={value.metadata.image} alt={value.label} className={styles.nftOptionImage} />
+            {value.label}
           </div>
         ) : (
           "Select a profile picture"
@@ -30,8 +30,8 @@ const ProfilePicDropdown = ({ options, value, onChange }) => {
               onClick={() => handleSelect(option)}
             >
               <div className={styles.optionContent}>
-                <img src={option.metadata.image} alt={`NFT ${option.tokenId}`} className={styles.nftOptionImage} />
-                {`${option.chain} - NFT ${option.tokenId}`}
+                <img src={option.metadata.image} alt={option.label} className={styles.nftOptionImage} />
+                {option.label}
               </div>
             </div>
           ))}
