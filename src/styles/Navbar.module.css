@@ -58,6 +58,7 @@
   display: flex;
   align-items: center;
   gap: 2rem; /* Adjust space between links */
+  text-decoration: none;
 }
 
 .navbarLinks a {
@@ -69,7 +70,7 @@
 }
 
 .navbarLinks a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .logoLink {

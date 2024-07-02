@@ -74,7 +74,7 @@ def process_gif(gif_path, text_path, output_file):
 # Paths
 gif_path = '../src/utils/waves.gif'  # Ensure the GIF file path is correct
 text_path = '../src/utils/blormLogoASCII.txt'  # Ensure the text file path is correct
-output_file = '../src/utils/ascii_frames_with_blorm.json'
+output_file = '../src/utils/loadingAscii.json'
 
 # Process the GIF
 process_gif(gif_path, text_path, output_file)

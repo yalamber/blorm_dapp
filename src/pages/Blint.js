@@ -13,6 +13,7 @@ import OpepenGrid from '../components/OpepenGrid.js';
 import Navbar from '../components/Navbar.js';
 import { useAuth } from '../context/AuthContext';
 import ChainDropdown from '../components/ChainDropdown.js';
+import LoadingAscii from '../components/LoadingAscii.js';
 
 const layers = [
     { id: 'layer1', label: 'Layer 1 (background)', type: 'gradient' },
@@ -516,6 +517,35 @@ const Blint = () => {
 
     const [isCanvasValid, setIsCanvasValid] = useState(false);
 
+    const blintAgainClicked = () => {
+        setShowCongrats(false);
+        setCanvasDataURL('');
+        setSuccessTxHash('');
+        setSuccessTokenId('');
+        setOpenseaURL('');
+        setNft(null);
+        setStarCount(0);
+        setRecipientAddress('');
+        setVisibility({
+            layer2: true,
+            layer4: true,
+            layer5: true,
+        });
+        setGradientColors({
+            primary: '',
+            secondary: '',
+        });
+        setBackgroundColor('');
+        setMetadata({});
+        setTokenUrl('');
+        setUploadUrl('');
+        setCheckResult('');
+        setAddResult('');
+        setCanvasDataURL('');
+        setDisplayMessage([]);
+        setSelectedChain('');
+    }
+
     return (
         <div className={styles.container}>
             <Navbar />
@@ -523,13 +553,14 @@ const Blint = () => {
                 <BlintDisplayMessage messages={displayMessage} clearMessage={clearMessage} />
             )}
             {OpepenGridTop}
-            {loading ? <div className={styles.loading}>Loading . . .</div> : null}
+            {loading ? <LoadingAscii/> : null}
             {showCongrats ? (
                 <BlintCongrats
                     txHash={successTxHash}
                     tokenId={successTokenId}
                     openseaURL={openseaURL}
                     nft={nft}
+                    blintAgainClicked={blintAgainClicked}
                 />
             ) : (
                 <div className={styles.middleContainer}>

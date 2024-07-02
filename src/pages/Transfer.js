@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
-import blop6 from '../utils/Blop6.json';
+import blop6 from '../utils/Blop7.json';
 import { Options } from '@layerzerolabs/lz-v2-utilities';
 
 const Transfer = () => {
   const [eid, setEid] = useState('');
   const [peer, setPeer] = useState('');
-  const [tokenId, setTokenId] = useState('100');
-  const [dstEid, setDstEid] = useState('40245');
+  const [tokenId, setTokenId] = useState('200');
+  const [dstEid, setDstEid] = useState('40161');
   const [status, setStatus] = useState('');
-  const [contractAddress, setContractAddress] = useState('0xD19cAFa36c184bB01B6dAfdC7EFf224a3Cfce02D');
+  const [contractAddress, setContractAddress] = useState('0x966E5DC04A6EB78EF8b1FD6E5CD56b447ee40669');
   const [userAddress, setUserAddress] = useState('0x0c778e66efa266b5011c552C4A7BDA63Ad24C37B');
   const [destAddress, setDestAddress] = useState('0x0c778e66efa266b5011c552C4A7BDA63Ad24C37B');
 
@@ -69,17 +69,23 @@ const Transfer = () => {
       const sendParams = {
         dstEid: parseInt(dstEid),
         to: destinationAddressFormatted,
-        tokenID: parseInt(tokenId),
+        tokenID: BigInt(parseInt(tokenId)),
         tokenURI: tokenURI,
         extraOptions: extraOptionsFormatted
       };
 
-      const MessagingFee = {
-        nativeFee: 70003585193925,
-        lzTokenFee: 0,
-      };
-
       const gasPriceFetched = (await provider.getFeeData()).gasPrice;
+
+      const _payInLzToken = false; // Change this based on your requirement
+
+      console.log('quoting with:', parseInt(dstEid), sendParams, extraOptionsFormatted, _payInLzToken);
+
+      const [nativeFee, lzTokenFee] = await contract.quote(parseInt(dstEid), sendParams, extraOptionsFormatted, _payInLzToken);
+
+      const MessagingFee = {
+        nativeFee: nativeFee,
+        lzTokenFee: lzTokenFee,
+      };
 
       const overrides = {
         gasLimit: 10000000, // Adjust the gas limit as needed
@@ -98,60 +104,11 @@ const Transfer = () => {
     }
   }
 
-  const [quoteDstEid, setQuoteDstEid] = useState('40245');
-  const [quoteTokenId, setQuoteTokenId] = useState('100');
-  const [quoteResult, setQuoteResult] = useState('');
-
-  const handleQuote = async (event) => {
-    event.preventDefault();
-    setStatus('Fetching quote...');
-
-    try {
-      console.log('quoteDstEid:', quoteDstEid, 'quoteTokenId:', quoteTokenId);
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-
-      const contractABI = blop6.abi;
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-      const tokenURI = await contract.tokenURI(BigInt(quoteTokenId));
-
-      const destinationAddressFormatted = ethers.zeroPadValue(destAddress, 32); // ethers.toBeHex(
-
-      const GAS_LIMIT = BigInt(6000000); // Adjust as needed
-      const MSG_VALUE = BigInt(0); // Adjust as needed
-      const _options = await Options.newOptions().addExecutorLzReceiveOption(GAS_LIMIT, MSG_VALUE);
-      const extraOptionsFormatted = _options.toBytes();
-
-      const sendParams = {
-        dstEid: parseInt(dstEid),
-        to: destinationAddressFormatted,
-        tokenID: parseInt(tokenId),
-        tokenURI: tokenURI,
-        extraOptions: extraOptionsFormatted
-      };
-
-      const _payInLzToken = false; // Change this based on your requirement
-
-      console.log('quoting with:', quoteDstEid, sendParams, _options.toBytes(), _payInLzToken);
-
-      const [nativeFee, lzTokenFee] = await contract.quote(parseInt(quoteDstEid), sendParams, _options.toBytes(), _payInLzToken);
-
-      setQuoteResult(`Native Fee: ${nativeFee.toString()}, LZ Token Fee: ${lzTokenFee.toString()}`);
-      setStatus('Quote fetched successfully!');
-    } catch (error) {
-      console.error("Quote fetching failed:", error);
-      setStatus('Quote fetching failed!');
-    }
-  };
-
-
 
   return (
     <div>
       <h1>Transfer</h1>
-      <h2>Sepolia: 0xD19cAFa36c184bB01B6dAfdC7EFf224a3Cfce02D . Base Sepolia: 0x0f60648Aa233a0e1884f2684aA6a0BD6eB9e085b</h2>
+      <h2>Sepolia: 0x6f59ED15685DA48d20294D2d2313E45cDAC4a5CC . Base Sepolia: 0x966E5DC04A6EB78EF8b1FD6E5CD56b447ee40669</h2>
       <input type="text" value={contractAddress} onChange={(e) => setContractAddress(e.target.value)} required />
       <input type="text" value={userAddress} onChange={(e) => setUserAddress(e.target.value)} required />
       <form onSubmit={handleSetPeer}>
@@ -217,32 +174,6 @@ const Transfer = () => {
         <button type="submit">Transfer</button>
       </form>
       <div>{status}</div>
-      <form onSubmit={handleQuote}>
-        <div>
-          <label>
-            Destination EID:
-            <input
-              type="text"
-              value={quoteDstEid}
-              onChange={(e) => setQuoteDstEid(e.target.value)}
-              required
-            />
-          </label>
-        </div>
-        <div>
-          <label>
-            Token ID:
-            <input
-              type="text"
-              value={quoteTokenId}
-              onChange={(e) => setQuoteTokenId(e.target.value)}
-              required
-            />
-          </label>
-        </div>
-        <button type="submit">Get Quote</button>
-      </form>
-      <div>{quoteResult}</div>
 
     </div>
   );
