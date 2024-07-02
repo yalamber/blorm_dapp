@@ -194,11 +194,19 @@
     width: 3vw;
     height: auto;
     object-fit: cover;
-    margin-left: 5vw;
+    margin-left: 3vw;
+}
+
+.actionButtonContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 12vw;
+    margin-left: 2vw;
 }
 
 .actionButton {
-    margin-left: 6vw;
+    width: 100%;
     align-items: center;
     appearance: none;
     background-color: #222;
@@ -228,7 +236,6 @@
     will-change: box-shadow,transform;
     font-size: 1rem;
     font-weight: bold;
-    width: 15vw;
   }
   
   .actionButton:focus, .chainSelect:focus {

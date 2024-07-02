@@ -4,7 +4,7 @@ import logo from '../images/logo.png';
 import NftCard from './NftCard'; // Import the NftCard component
 import { Link } from 'react-router-dom';
 
-const BlintCongrats = ({ txHash, tokenId, openseaURL, nft }) => {
+const BlintCongrats = ({ txHash, tokenId, openseaURL, nft, blintAgainClicked }) => {
     console.log('BlintCongrats:', { txHash, tokenId, openseaURL, nft });
     return (
         <div className={styles.container}>
@@ -24,9 +24,12 @@ const BlintCongrats = ({ txHash, tokenId, openseaURL, nft }) => {
                         This is only one blorm of many to come.
                     </p>
                     <div className={styles.callToAction}>
-                        <Link to="/profile">
+                        <Link className={styles.actionButtonContainer} to="/profile">
                             <button className={styles.actionButton}> See Profile → </button>
                         </Link>
+                        <div className={styles.actionButtonContainer}>
+                            <button className={styles.actionButton} onClick={blintAgainClicked}> Blint Again → </button>
+                        </div>
                         <img src={logo} className={styles.callToActionLogo}></img>
                     </div>
                 </div>

@@ -16,7 +16,7 @@ const AuthButton = () => {
     return (
       <div className={styles.authContainer}>
         <Link to="/profile" className={styles.authContainer}>
-          <span className={styles.walletAddress}>{profile.name}</span>
+          {/* <span className={styles.walletAddress}>{profile.name}</span> */}
           {profile.profilePicture && (
             <img src={profile.profilePicture} alt="Profile" className={styles.profileImage} />
           )}
