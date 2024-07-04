@@ -203,6 +203,7 @@
     align-items: center;
     width: 12vw;
     margin-left: 2vw;
+    text-decoration: none;
 }
 
 .actionButton {
