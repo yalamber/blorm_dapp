@@ -8,7 +8,8 @@
     margin: 0;
     padding-top: 7vh;
     box-sizing: border-box;
-    overflow: visible; /* Allow overflow to be visible */
+    overflow: visible;
+    /* Allow overflow to be visible */
 }
 
 .loading {
@@ -82,8 +83,10 @@
     width: 50vw;
     padding-bottom: 10vh;
     margin-left: 4vw;
-    position: relative; /* Ensure relative positioning to allow child absolute positioning */
-    z-index: 1; /* Ensure it's above other background elements */
+    position: relative;
+    /* Ensure relative positioning to allow child absolute positioning */
+    z-index: 1;
+    /* Ensure it's above other background elements */
 }
 
 .sentence div {
@@ -94,7 +97,8 @@
     padding-right: 2vw;
     padding-left: 2vw;
     justify-content: flex-start;
-    position: relative; /* Ensure relative positioning to allow child absolute positioning */
+    position: relative;
+    /* Ensure relative positioning to allow child absolute positioning */
 }
 
 .sentence span {
@@ -111,7 +115,10 @@
     box-sizing: content-box;
     padding-right: 2vw;
     justify-content: flex-start;
-    position: relative; /* Ensure relative positioning to allow child absolute positioning */
+    position: relative;
+    /* Ensure relative positioning to allow child absolute positioning */
+    z-index: 1;
+    /* Ensure it's above other background elements */
 }
 
 .sentenceChainSpan {
@@ -122,9 +129,18 @@
     position: absolute;
     top: 0;
     left: 2vw;
+    z-index: 2;
+    /* Higher z-index to ensure it overlays other elements */
 }
 
-
+.chainDropdownContainer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 20vw;
+}
 
 
 .canvasContainer {
@@ -154,22 +170,6 @@
 
 .generateButtonContainer {
     width: 18vw;
-}
-
-.chainSelect {
-    font-family: "Chakra Petch", sans-serif;
-    font-size: 1.2rem;
-    padding: 0.5rem;
-    background: #222;
-    color: rgba(255, 255, 255, 0.5);
-    font-weight: bold;
-    border-radius: 10px;
-    width: 50%;
-    outline: none;
-    cursor: pointer;
-    border: rgba(255, 255, 255, 0.2) 2px solid;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
-    margin-left: 0.7rem;
 }
 
 .mintButtonContainer {
@@ -256,4 +256,117 @@
     padding: 20px;
     border-radius: 20px;
     text-align: center;
+}
+
+@media (max-width: 768px) {
+    .container {}
+
+    .homeBg {
+        width: 100%;
+    }
+
+    .middleContainer {
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100vw;
+        height: 60vh;
+        padding: 0;
+        margin: 0;
+        overflow: visible;
+    }
+
+    .middleLeftContainer {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sentence {
+        width: 100vw;
+        margin: 0;
+        padding: 3vh 0 0 5vw;
+        font-size: 1.2rem;
+        display: flex;
+        flex-wrap: wrap;
+        /* Allow flex items to wrap */
+        box-sizing: border-box;
+    }
+
+    .sentenceChain {
+        width: 100vw;
+        /* Adjust to full width */
+        display: flex;
+        margin-top: 0.5rem;
+        /* Add margin for spacing */
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .chainDropdownContainer {
+        position: absolute;
+        left: 60%;
+        transform: translateX(-50%);
+        top: -1vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        width: 60vw;
+        overflow: visible;
+        height: 3vh;
+        max-height: 3vh;
+    }
+
+    .colorInput {
+        font-size: 1.2rem;
+        flex-grow: 1;
+        min-width: 100px;
+        /* Allow the input to grow */
+    }
+
+    .colorInput::placeholder {
+        font-size: 0.8rem;
+        text-align: center;
+    }
+
+    .chainSelect {
+        font-size: 1.2rem;
+        position: relative;
+        /* Ensure relative positioning */
+        flex-grow: 1;
+        /* Allow the select element to grow */
+    }
+
+    .canvasContainer {
+        width: 200px;
+        height: 200px;
+        flex-direction: row;
+    }
+
+    .canvasInner {
+        width: 200px;
+        height: 200px;
+        margin-right: 10vw;
+    }
+
+    .buttonsContainer {
+        width: 100%;
+        height: 20vh;
+        padding-top: 2vh;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .generateButtonContainer {
+        width: 30vw;
+    }
+
+    .mintButtonContainer {
+        width: 30vw;
+    }
+
+    .actionButton {
+        width: 30vw;
+    }
 }

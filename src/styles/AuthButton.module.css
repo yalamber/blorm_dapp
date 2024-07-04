@@ -9,8 +9,8 @@
 }
 
 .profileImage {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   margin-right: 1vw;
@@ -88,10 +88,45 @@
 
 .signOutButton, .signOutButton:active, .signOutButton:focus, .signOutButton:hover {
   position: absolute;
-  bottom: .5vh;
-  right: 1.25vw;
+  bottom: .8vh;
+  right: 1.5vw;
   width: .75vw;
   z-index: 10;
   text-decoration: none;
 }
+
+@media (max-width: 768px) {
+  .authContainer {
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+  }
+
+  .profileImage {
+    width: 40px;
+    height: 40px;
+    margin-right: 0;
+  }
+
+  .walletAddress {
+    font-size: 0.7rem;
+    margin-right: 0;
+    text-align: center;
+  }
+
+  .loginButton {
+    font-size: 0.7rem;
+    padding-left: 2vw;
+    padding-right: 2vw;
+    width: auto;
+    height: 5vh;
+  }
+
+  .signOutButton {
+    bottom: 1vh;
+    right: 4vw;
+    width: 3vw;
+  }
+}
+
 

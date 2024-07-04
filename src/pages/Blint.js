@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useLayoutEffect, useState, useRef, useEffect, useMemo } from 'react';
 import BlintDisplayMessage from '../components/BlintDisplayMessage';
 import * as tf from '@tensorflow/tfjs';
 import predefinedColors from '../utils/predefinedColors.json';
@@ -52,6 +52,39 @@ const rgbArrayToHex = (rgb) => {
 };
 
 const Blint = () => {
+    const [isMobile, setIsMobile] = useState(false);
+
+    const checkIfMobile = () => {
+        // Check for mobile user agents or screen width
+        if (typeof window !== 'undefined') {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const isMobileDevice = /android|iphone|ipad|iPod|opera mini|iemobile|wpdesktop/i.test(userAgent) ||
+                window.innerWidth <= 768; // You can adjust this width for your specific needs
+            setIsMobile(isMobileDevice);
+        }
+    };
+
+    useEffect(() => {
+        checkIfMobile();
+        window.addEventListener('resize', checkIfMobile);
+        return () => window.removeEventListener('resize', checkIfMobile);
+    }, []);
+
+    const [canvasSize, setCanvasSize] = useState(400);
+
+    useLayoutEffect(() => {
+        resizeCanvas(); // Set initial canvas size
+        window.addEventListener('resize', resizeCanvas);
+        return () => window.removeEventListener('resize', resizeCanvas);
+    }, []);
+
+
+    const resizeCanvas = () => {
+        const isMobileDevice = window.innerWidth <= 768;
+        setCanvasSize(isMobileDevice ? 200 : 400);
+    };
+
+
     const { user, walletAddress, profile, handleLogin } = useAuth();
     const [showModal, setShowModal] = useState(false);
 
@@ -553,7 +586,7 @@ const Blint = () => {
                 <BlintDisplayMessage messages={displayMessage} clearMessage={clearMessage} />
             )}
             {OpepenGridTop}
-            {loading ? <LoadingAscii/> : null}
+            {loading ? <LoadingAscii /> : null}
             {showCongrats ? (
                 <BlintCongrats
                     txHash={successTxHash}
@@ -604,13 +637,15 @@ const Blint = () => {
                             </div>
                             <div className={styles.sentenceChain}>
                                 <span className={styles.sentenceChainSpan}>on </span>
-                                <ChainDropdown label="Select Chain:" onSelectChain={handleChainSelection} />
+                                <div className={styles.chainDropdownContainer}>
+                                    <ChainDropdown label="Select Chain:" onSelectChain={handleChainSelection} />
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div className={styles.canvasContainer}>
                         <div className={styles.canvasInner}>
-                            <canvas ref={canvasRef} width={400} height={400} />
+                            <canvas ref={canvasRef} width={canvasSize} height={canvasSize}></canvas>
                         </div>
                         <div className={styles.buttonsContainer}>
                             <div className={styles.generateButtonContainer}>
@@ -637,7 +672,9 @@ const Blint = () => {
                 {OpepenGridBottom}
             </div>
         </div>
+
+
     );
-};
+}
 
 export default Blint;

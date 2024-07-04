@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import Blop from './Blop7.json';
+import Blop from './Blop8.json';
 import UploadToIPFS from './UploadToIPFS';
 const chainListUrl = 'https://chainid.network/chains.json';
 
@@ -75,17 +75,13 @@ export const mintToken = async (metadata, selectedChain) => {
         const metadataURI = await UploadToIPFS(JSON.stringify(metadata), true);
         console.log('Metadata URI:', metadataURI);
 
-        const mintFee = ethers.parseUnits("0.001", "ether");
-        
-        const gasEstimate = await contract.mint.estimateGas(recipientAddress, metadataURI, {
-            value: mintFee,
-        });
+        const mintFee = ethers.parseUnits("0", "ether");
 
-        const gasPrice = (await provider.getFeeData()).gasPrice;
 
-        const transaction = await contract.mint(recipientAddress, metadataURI, {
-            value: mintFee,
-        });
+        console.log('contract address and contract object', contractAddress, contract)
+        console.log('Minting with:', recipientAddress, metadataURI);
+
+        const transaction = await contract.mint(recipientAddress, metadataURI, { value: mintFee });
         const receipt = await transaction.wait();
 
         console.log('Transaction receipt:', receipt);

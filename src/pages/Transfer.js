@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
-import blop6 from '../utils/Blop7.json';
+import blop8 from '../utils/Blop8.json';
 import { Options } from '@layerzerolabs/lz-v2-utilities';
 
 const Transfer = () => {
   const [eid, setEid] = useState('');
   const [peer, setPeer] = useState('');
-  const [tokenId, setTokenId] = useState('200');
-  const [dstEid, setDstEid] = useState('40161');
+  const [tokenId, setTokenId] = useState('');
+  const [dstEid, setDstEid] = useState('');
   const [status, setStatus] = useState('');
-  const [contractAddress, setContractAddress] = useState('0x966E5DC04A6EB78EF8b1FD6E5CD56b447ee40669');
-  const [userAddress, setUserAddress] = useState('0x0c778e66efa266b5011c552C4A7BDA63Ad24C37B');
-  const [destAddress, setDestAddress] = useState('0x0c778e66efa266b5011c552C4A7BDA63Ad24C37B');
+  const [contractAddress, setContractAddress] = useState('');
+  const [userAddress, setUserAddress] = useState('');
+  const [destAddress, setDestAddress] = useState('');
 
   const handleSetPeer = async (event) => {
     event.preventDefault();
@@ -22,7 +22,7 @@ const Transfer = () => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
 
-      const contractABI = blop6.abi;
+      const contractABI = blop8.abi;
 
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
       const gasPriceFetched = (await provider.getFeeData()).gasPrice;
@@ -31,7 +31,7 @@ const Transfer = () => {
         gasPrice: gasPriceFetched, // Adjust the gas    price as needed
       };
 
-      const tx = await contract.setPeer(parseInt(eid), ethers.id(peer), overrides);
+      const tx = await contract.setTrustedRemoteAddress(parseInt(eid), ethers.id(peer), overrides);
       await tx.wait();
 
       setStatus('setPeer transaction successful!');
@@ -44,72 +44,62 @@ const Transfer = () => {
   const handleSend = async (event) => {
     event.preventDefault();
     setStatus('Processing transfer...');
-
+  
     try {
       await window.ethereum.request({ method: 'eth_requestAccounts' });
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-
-      const contractABI = blop6.abi;
+  
+      const contractABI = blop8.abi;
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-      const GAS_LIMIT = BigInt(6000000); // Gas limit for the executor
-      const MSG_VALUE = BigInt(0); // msg.value for the lzReceive() function on destination in wei
-
-      const _options = Options.newOptions().addExecutorLzReceiveOption(GAS_LIMIT, MSG_VALUE);
-
-      const tokenURI = await contract.tokenURI(BigInt(tokenId));
-
-      console.log('tokenURI:', tokenURI);
-
-      const destinationAddressFormatted = ethers.zeroPadValue(destAddress, 32); // ethers.toBeHex(
-
-      const extraOptionsFormatted = _options.toBytes();
-
-      const sendParams = {
-        dstEid: parseInt(dstEid),
-        to: destinationAddressFormatted,
-        tokenID: BigInt(parseInt(tokenId)),
-        tokenURI: tokenURI,
-        extraOptions: extraOptionsFormatted
-      };
-
+      console.log('contract:', contract);
+  
+      // Ensure that adapterParams are correctly encoded
+      const adapterParams = ethers.solidityPacked(
+        ['uint16', 'uint256'],
+        [1, 200000]
+      );
+  
+      const zroPaymentAddress = ethers.ZeroAddress; // Set to address(0x0)
+  
       const gasPriceFetched = (await provider.getFeeData()).gasPrice;
-
-      const _payInLzToken = false; // Change this based on your requirement
-
-      console.log('quoting with:', parseInt(dstEid), sendParams, extraOptionsFormatted, _payInLzToken);
-
-      const [nativeFee, lzTokenFee] = await contract.quote(parseInt(dstEid), sendParams, extraOptionsFormatted, _payInLzToken);
-
-      const MessagingFee = {
-        nativeFee: nativeFee,
-        lzTokenFee: lzTokenFee,
-      };
-
       const overrides = {
-        gasLimit: 10000000, // Adjust the gas limit as needed
-        gasPrice: gasPriceFetched, // Adjust the gas    price as needed
+        gasLimit: 600000, // Adjust the gas limit as needed
+        gasPrice: gasPriceFetched, // Adjust the gas price as needed
       };
-
-      console.log('sending with:', sendParams, MessagingFee, userAddress, overrides);
-
-      const tx = await contract.send(sendParams, MessagingFee, userAddress, overrides);
+  
+      let mintFee = ethers.parseEther('0');
+  
+      console.log('sending with:', userAddress, dstEid, destAddress, tokenId, userAddress, zroPaymentAddress, adapterParams, mintFee, overrides);
+  
+      const tx = await contract.sendFrom(
+        userAddress, 
+        BigInt(parseInt(dstEid)), 
+        destAddress, 
+        BigInt(parseInt(tokenId)), 
+        userAddress, 
+        zroPaymentAddress, 
+        adapterParams,
+        { value: mintFee, ...overrides }
+      );
       await tx.wait();
-
+      console.log('Transaction details:', tx);
       setStatus('Transaction successful!');
     } catch (error) {
       console.error("Transaction failed:", error);
       setStatus('Transaction failed!');
     }
-  }
-
+  };
+  
 
   return (
     <div>
       <h1>Transfer</h1>
-      <h2>Sepolia: 0x6f59ED15685DA48d20294D2d2313E45cDAC4a5CC . Base Sepolia: 0x966E5DC04A6EB78EF8b1FD6E5CD56b447ee40669</h2>
+      <h2>Sepolia: 0x6eF926794f5193b3725BeAA60584756217f5CB52 . Sepolia 2: 0xB45F80d607D7B1b5acB83215ea4630c615744f48</h2>
+      Contract Address:
       <input type="text" value={contractAddress} onChange={(e) => setContractAddress(e.target.value)} required />
+      User Address:
       <input type="text" value={userAddress} onChange={(e) => setUserAddress(e.target.value)} required />
       <form onSubmit={handleSetPeer}>
         <div>

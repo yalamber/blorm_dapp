@@ -61,6 +61,22 @@
   color: black;
 }
 
+.topCenter {
+  position: fixed;
+  top: 2.5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+}
+
+.topCenterText {
+  font-size: 2rem;
+  font-weight: 200;
+  color: black;
+
+}
+
 .topRight {
   position: fixed;
   top: 5vh;
@@ -75,6 +91,11 @@
   font-size: 1.25rem;
   color: black;
   margin-bottom: .75rem;
+}
+
+.topRightImage {
+  height: 2rem;
+  padding-bottom: .5rem;
 }
 
 .bottomLeft {
@@ -139,3 +160,74 @@
   transform: translateY(2px);
 }
 
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .homeBg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .center {
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+  }
+
+  .centerImage {
+    width: 50%;
+    margin-top: 3vh;
+  }
+
+  .centerText {
+    font-size: 1.25rem;
+  }
+
+  .topleft {
+    top: 3vh;
+    left: 5vw;
+  }
+
+  .topleftImage {
+    height: 2rem;
+  }
+
+  .topleftText {
+    font-size: 1.5rem;
+    margin-bottom: .3rem;
+  }
+
+  .topRight {
+    top: 3vh;
+    right: 5vw;
+  }
+
+  .topRightImage {
+    height: 2rem;
+  }
+
+  .bottomLeft {
+    bottom: 3vh;
+    left: 5vw;
+    font-size: 1rem;
+  }
+
+  .bottomRight {
+    bottom: 3vh;
+    right: 5vw;
+  }
+
+  .actionButton {
+    margin-top: 0;
+    width: 30vw;
+    font-size: 16px;
+    color: white;
+    background-color: black;
+    box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px,rgba(45, 35, 66, 0.3) 0 7px 13px -3px,black 0 -3px 0 inset;
+    font-weight: 200;
+    height: 4.5vh;
+  }
+}

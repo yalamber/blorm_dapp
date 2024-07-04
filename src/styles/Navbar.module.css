@@ -57,7 +57,7 @@
 .navbarLinks {
   display: flex;
   align-items: center;
-  gap: 2rem; /* Adjust space between links */
+  gap: 2vw; /* Adjust space between links */
   text-decoration: none;
 }
 
@@ -65,7 +65,7 @@
   text-decoration: none;
   color: #000; 
   font-size: 1.2rem;
-  font-family: 'Chakra Petch', sans-serif; 
+  font-family: 'Chakra Petch', sans-serif;
   text-transform: uppercase; 
 }
 
@@ -74,8 +74,9 @@
 }
 
 .logoLink {
+  margin-top: 0.5vh;
   width: auto;
-  height: 3vh;
+  height: 2.5vh;
 }
 
 .profileContainer {
@@ -95,4 +96,33 @@
 .walletAddress {
   font-size: 14px;
   color: #333;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .logoText {
+    font-size: 1.2rem;
+  }
+
+  .logoImage {
+    height: 30px;
+  }
+
+  .navbarLinks a {
+    font-size: 1rem;
+    margin-right: 1rem;
+  }
+
+  .profileImage {
+    width: 25px;
+    height: 25px;
+  }
+
+  .walletAddress {
+    font-size: 12px;
+  }
 }
