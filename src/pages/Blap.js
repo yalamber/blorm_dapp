@@ -3,10 +3,12 @@ import styles from '../styles/Blap.module.css';
 import LoadingBlap from '../components/LoadingBlap';
 import * as chainRegistry from 'chain-registry';
 import { executeRoute } from '../utils/skipUtils.js'; // Import the function directly
+import customChains from '../utils/customChains.json';
+import customAssets from '../utils/customAssets.json'; // Import custom assets
+import { ethers } from 'ethers';
+import * as solanaWeb3 from '@solana/web3.js';
 
 const Blap = () => {
-  // SkipClient should be a function call instead of instantiating a class
-  // const SkipClient = new SkipRouter(); // Remove this line
 
   const [showLoading, setShowLoading] = useState(false);
   const [assets, setAssets] = useState([]);
@@ -45,14 +47,13 @@ const Blap = () => {
       try {
         const response = await fetch('https://api.skip.money/v2/info/chains');
         const data = await response.json();
-        const allChains = data.chains.sort((a, b) => a.chain_name.localeCompare(b.chain_name));
+        const allChains = [...data.chains, ...customChains].sort((a, b) => a.chain_name.localeCompare(b.chain_name));
         setChains(allChains);
-        const allAssets = chainRegistry.assets;
-        setAssets(allAssets);
       } catch (error) {
         console.error('Error fetching chains:', error);
       }
     };
+
     fetchChains();
   }, []);
 
@@ -61,12 +62,17 @@ const Blap = () => {
     setSelectedSourceChain(chain);
     setSourceChainSearch(chain.chain_name);
 
-    const matchingAssets = chain.fee_assets.map(asset => {
-      const registryAsset = chainRegistry.assets.find(a => a.base === asset.denom);
-      return registryAsset ? { ...asset, ...registryAsset } : asset;
-    });
+    if (customAssets.chain_to_assets_map[chain.chain_id]) {
+      const matchingAssets = customAssets.chain_to_assets_map[chain.chain_id].assets;
+      setAssets(matchingAssets);
+    } else {
+      const matchingAssets = chain.fee_assets.map(asset => {
+        const registryAsset = chainRegistry.assets.find(a => a.base === asset.denom);
+        return registryAsset ? { ...asset, ...registryAsset } : asset;
+      });
+      setAssets(matchingAssets);
+    }
 
-    setAssets(matchingAssets);
     setIsSourceChainDropdownOpen(false);
     handleRoute(); // Call handleRoute
   };
@@ -84,12 +90,17 @@ const Blap = () => {
     setSelectedDestinationChain(chain);
     setDestinationChainSearch(chain.chain_name);
 
-    const matchingAssets = chain.fee_assets.map(asset => {
-      const registryAsset = chainRegistry.assets.find(a => a.base === asset.denom);
-      return registryAsset ? { ...asset, ...registryAsset } : asset;
-    });
+    if (customAssets.chain_to_assets_map[chain.chain_id]) {
+      const matchingAssets = customAssets.chain_to_assets_map[chain.chain_id].assets;
+      setAssets(matchingAssets);
+    } else {
+      const matchingAssets = chain.fee_assets.map(asset => {
+        const registryAsset = chainRegistry.assets.find(a => a.base === asset.denom);
+        return registryAsset ? { ...asset, ...registryAsset } : asset;
+      });
+      setAssets(matchingAssets);
+    }
 
-    setAssets(matchingAssets);
     setIsDestinationChainDropdownOpen(false);
     handleRoute(); // Call handleRoute
   };
@@ -150,11 +161,11 @@ const Blap = () => {
 
   const handleRoute = async () => {
     if (!selectedSourceAsset || !selectedSourceChain || !selectedDestinationAsset || !selectedDestinationChain) {
-      console.error("Please ensure all selections are made before routing.");
+      // console.error("Please ensure all selections are made before routing.");
       return;
     }
 
-    console.log('selected options: ', selectedSourceAsset, selectedSourceChain, selectedDestinationAsset, selectedDestinationChain)
+    // console.log('selected options: ', selectedSourceAsset, selectedSourceChain, selectedDestinationAsset, selectedDestinationChain)
 
     const options = {
       method: 'POST',
@@ -183,15 +194,15 @@ const Blap = () => {
       setRouteResponse(data); // Save response data in state
 
       if (data.required_chain_addresses) {
-        const fetchedAddresses = await getKeplrAddresses(data.required_chain_addresses);
+        const fetchedAddresses = await getAddresses(data.required_chain_addresses);
         setAddresses(fetchedAddresses); // Save addresses in state
+        console.log('Addresses:', fetchedAddresses);
       }
       setDestinationAmount(data.amount_out);
     } catch (error) {
       console.error('Error fetching route:', error);
     }
   };
-
 
   useEffect(() => {
     if (routeResponse && routeResponse.amount_out) {
@@ -205,8 +216,8 @@ const Blap = () => {
     handleRoute();
   }, [selectedSourceAsset, selectedSourceChain, selectedDestinationAsset, selectedDestinationChain, sourceAmount]);
 
-
   const handleMsgSend = async () => {
+
     if (!routeResponse) {
       console.error("No route response to use for the message send.");
       return;
@@ -240,20 +251,42 @@ const Blap = () => {
     }
   };
 
-  const getKeplrAddresses = async (chainIds) => {
-    if (!window.keplr) {
-      alert("Please install Keplr extension");
-      return;
-    }
-
+  const getAddresses = async (chainIds) => {
     const addresses = {};
+  
     for (const chainId of chainIds) {
-      await window.keplr.enable(chainId);
-      const offlineSigner = window.keplr.getOfflineSigner(chainId);
-      const accounts = await offlineSigner.getAccounts();
-      addresses[chainId] = accounts[0].address;
+      if (chainId === "1" || chainId === "8453") {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        addresses[chainId] = await signer.getAddress();
+      } 
+      else if (chainId === "solana") {
+        // using Phantom Wallet for this example
+        if (window.solana && window.solana.isPhantom) {
+          try {
+            await window.solana.connect();
+            addresses[chainId] = window.solana.publicKey.toString();
+          } catch (error) {
+            console.error("Error connecting to Solana wallet:", error);
+          }
+        } else {
+          alert("Please install the Phantom wallet extension.");
+          return;
+        }
+      } 
+      else {
+        if (!window.keplr) {
+          alert("Please install Keplr extension");
+          return;
+        }
+        await window.keplr.enable(chainId);
+        const offlineSigner = window.keplr.getOfflineSigner(chainId);
+        const accounts = await offlineSigner.getAccounts();
+        addresses[chainId] = accounts[0].address;
+      }
+      console.log('Addresses from getAddresses:', addresses);
     }
-    console.log('Addresses from getKeplrAddresses:', addresses)
+    
     return addresses;
   };
 
@@ -314,7 +347,7 @@ const Blap = () => {
                         className={styles.dropdownItem}
                         onClick={() => handleSourceAssetChange(asset.denom)}
                       >
-                        {asset.denom}
+                        {asset.name || asset.denom}
                       </div>
                     ))}
                   </div>
@@ -376,7 +409,7 @@ const Blap = () => {
                         className={styles.dropdownItem}
                         onClick={() => handleDestinationAssetChange(asset.denom)}
                       >
-                        {asset.denom}
+                        {asset.name || asset.denom}
                       </div>
                     ))}
                   </div>

@@ -284,3 +284,34 @@
   object-fit: cover;
   border-radius: 50%;
 }
+
+@media (max-width: 768px) {
+  .editContentTitle {
+    font-size: 1.2rem;
+  }
+
+  .profileFieldContainer label {
+    font-size: 1rem;
+  }
+
+  .profileField {
+    font-size: 1.2rem;
+  }
+
+  .profileName {
+    font-size: 1.5rem;
+  }
+
+  .profileDisplayField {
+    font-size: 1.2rem;
+  }
+
+  .profileFieldContainer {
+    flex-direction: column;
+  }
+
+  .actionButton, .actionButton:hover, .actionButton:active {
+    width: 20vw;
+    margin-top: 2vh;
+  }
+}

@@ -1,0 +1,117 @@
+{
+    "chain_to_assets_map": {
+      "1": {
+        "assets": [
+          {
+            "denom": "ethereum-native",
+            "chain_id": "1",
+            "origin_denom": "ethereum-native",
+            "origin_chain_id": "1",
+            "trace": "",
+            "is_cw20": false,
+            "is_evm": true,
+            "is_svm": false,
+            "symbol": "ETH",
+            "name": "Ethereum",
+            "logo_uri": "https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/ethereum/images/eth-blue.svg",
+            "decimals": 18,
+            "description": "",
+            "coingecko_id": "ethereum",
+            "recommended_symbol": "ETH"
+          },
+          {
+            "denom": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "chain_id": "1",
+            "origin_denom": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "origin_chain_id": "1",
+            "trace": "",
+            "is_cw20": false,
+            "is_evm": true,
+            "is_svm": false,
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "logo_uri": "https://raw.githubusercontent.com/axelarnetwork/axelar-configs/main/images/tokens/usdc.svg",
+            "decimals": 6,
+            "token_contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "coingecko_id": "usd-coin",
+            "recommended_symbol": "USDC"
+          }
+        ]
+      },
+      "8453": {
+        "assets": [
+          {
+            "denom": "base-native",
+            "chain_id": "8453",
+            "origin_denom": "base-native",
+            "origin_chain_id": "8453",
+            "trace": "",
+            "is_cw20": false,
+            "is_evm": true,
+            "is_svm": false,
+            "symbol": "ETH",
+            "name": "ETH",
+            "logo_uri": "https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/ethereum/images/eth-blue.svg",
+            "decimals": 18,
+            "description": "",
+            "coingecko_id": "ethereum",
+            "recommended_symbol": "ETH"
+          },
+          {
+            "denom": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "chain_id": "8453",
+            "origin_denom": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "origin_chain_id": "8453",
+            "trace": "",
+            "is_cw20": false,
+            "is_evm": true,
+            "is_svm": false,
+            "symbol": "USDC",
+            "name": "Base USDC",
+            "logo_uri": "https://raw.githubusercontent.com/axelarnetwork/axelar-configs/main/images/tokens/usdc.svg",
+            "decimals": 6,
+            "token_contract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "coingecko_id": "usd-coin",
+            "recommended_symbol": "USDC"
+          }
+         
+        ]
+      },
+      "solana": {
+        "assets": [
+          {
+            "denom": "solana-native",
+            "chain_id": "solana",
+            "origin_denom": "solana-native",
+            "origin_chain_id": "solana",
+            "trace": "",
+            "is_cw20": false,
+            "is_evm": false,
+            "is_svm": true,
+            "symbol": "SOL",
+            "name": "Solana",
+            "logo_uri": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+            "decimals": 9,
+            "coingecko_id": "solana",
+            "recommended_symbol": "SOL"
+          },
+          {
+            "denom": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "chain_id": "solana",
+            "origin_denom": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "origin_chain_id": "solana",
+            "trace": "",
+            "is_cw20": false,
+            "is_evm": false,
+            "is_svm": true,
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "logo_uri": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+            "decimals": 6,
+            "coingecko_id": "usd-coin",
+            "recommended_symbol": "USDC"
+          }
+        ]
+      }
+    }
+  }
