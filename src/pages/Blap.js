@@ -2,15 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import styles from '../styles/Blap.module.css';
 import LoadingBlap from '../components/LoadingBlap';
 import * as chainRegistry from 'chain-registry';
-import { SigningStargateClient } from '@cosmjs/stargate';
-// import { SkipRouter, SKIP_API_URL } from '@skip-router/core'
+import { executeRoute } from '../utils/skipUtils.js'; // Import the function directly
 
 const Blap = () => {
-  /* const SkipClient = new SkipRouter({
-    apiURL: SKIP_API_URL,
-    getCosmosSigner: window.keplr.getOfflineSigner
-  });
-  */
+  // SkipClient should be a function call instead of instantiating a class
+  // const SkipClient = new SkipRouter(); // Remove this line
 
   const [showLoading, setShowLoading] = useState(false);
   const [assets, setAssets] = useState([]);
@@ -72,6 +68,7 @@ const Blap = () => {
 
     setAssets(matchingAssets);
     setIsSourceChainDropdownOpen(false);
+    handleRoute(); // Call handleRoute
   };
 
   const handleSourceAssetChange = (assetBase) => {
@@ -79,6 +76,7 @@ const Blap = () => {
     setSelectedSourceAsset(asset);
     setSourceAssetSearch(asset.denom);
     setIsSourceAssetDropdownOpen(false);
+    handleRoute(); // Call handleRoute
   };
 
   const handleDestinationChainChange = (chainName) => {
@@ -93,6 +91,7 @@ const Blap = () => {
 
     setAssets(matchingAssets);
     setIsDestinationChainDropdownOpen(false);
+    handleRoute(); // Call handleRoute
   };
 
   const handleDestinationAssetChange = (assetBase) => {
@@ -100,10 +99,12 @@ const Blap = () => {
     setSelectedDestinationAsset(asset);
     setDestinationAssetSearch(asset.denom);
     setIsDestinationAssetDropdownOpen(false);
+    handleRoute(); // Call handleRoute
   };
 
   const handleSourceAmountChange = (event) => {
     setSourceAmount(event.target.value);
+    handleRoute(); // Call handleRoute
   };
 
   const handleDestinationAmountChange = (event) => {
@@ -153,6 +154,8 @@ const Blap = () => {
       return;
     }
 
+    console.log('selected options: ', selectedSourceAsset, selectedSourceChain, selectedDestinationAsset, selectedDestinationChain)
+
     const options = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -173,6 +176,7 @@ const Blap = () => {
       })
     };
 
+    console.log('getting route with: ', options)
     try {
       const response = await fetch('https://api.skip.money/v2/fungible/route', options);
       const data = await response.json();
@@ -180,14 +184,27 @@ const Blap = () => {
 
       if (data.required_chain_addresses) {
         const fetchedAddresses = await getKeplrAddresses(data.required_chain_addresses);
-        console.log('Addresses from route:', fetchedAddresses);
         setAddresses(fetchedAddresses); // Save addresses in state
-        console.log('Addresses:', fetchedAddresses);
       }
+      setDestinationAmount(data.amount_out);
     } catch (error) {
       console.error('Error fetching route:', error);
     }
   };
+
+
+  useEffect(() => {
+    if (routeResponse && routeResponse.amount_out) {
+      setDestinationAmount(routeResponse.amount_out);
+    } else {
+      setDestinationAmount("Enter a source amount");
+    }
+  }, [routeResponse]);
+
+  useEffect(() => {
+    handleRoute();
+  }, [selectedSourceAsset, selectedSourceChain, selectedDestinationAsset, selectedDestinationChain, sourceAmount]);
+
 
   const handleMsgSend = async () => {
     if (!routeResponse) {
@@ -245,15 +262,10 @@ const Blap = () => {
       console.error("No route response to use for the execute route.");
       return;
     }
-
-    /* const response = await SkipClient.executeRoute({
-      routeResponse,
-      addresses,
-      onTransactionCompleted: (chainID, txHash, status) => {
-        console.log(`Route completed on ${chainID} with tx hash: ${txHash} & status: ${status.state}`)
-      }
-    }) */
-  }; 
+    console.log('Executing route with:', msgResponse, addresses)
+    const response = await executeRoute(msgResponse.txs, addresses); // Correctly call the function
+    console.log('Execute Route Response:', response);
+  };
 
   return (
     <div className={styles.container}>
@@ -271,11 +283,11 @@ const Blap = () => {
                   className={styles.searchInput}
                   onFocus={() => setIsSourceChainDropdownOpen(true)}
                 />
-                {isSourceChainDropdownOpen && (
+                {isSourceChainDropdownOpen && filteredSourceChains.length > 0 && (
                   <div className={styles.dropdown}>
                     {filteredSourceChains.map((chain) => (
                       <div
-                        key={chain.chain_name}
+                        key={chain.chain_id}
                         className={styles.dropdownItem}
                         onClick={() => handleSourceChainChange(chain.chain_name)}
                       >
@@ -294,11 +306,11 @@ const Blap = () => {
                   className={styles.searchInput}
                   onFocus={() => setIsSourceAssetDropdownOpen(true)}
                 />
-                {isSourceAssetDropdownOpen && (
+                {isSourceAssetDropdownOpen && filteredSourceAssets.length > 0 && (
                   <div className={styles.dropdown}>
                     {filteredSourceAssets.map((asset) => (
                       <div
-                        key={`${asset.chain_name}-${asset.denom}`}
+                        key={`${asset.denom}`}
                         className={styles.dropdownItem}
                         onClick={() => handleSourceAssetChange(asset.denom)}
                       >
@@ -307,6 +319,7 @@ const Blap = () => {
                     ))}
                   </div>
                 )}
+
               </div>
             </div>
             <div className={styles.swapInputAmountContainer}>
@@ -331,11 +344,11 @@ const Blap = () => {
                   className={styles.searchInput}
                   onFocus={() => setIsDestinationChainDropdownOpen(true)}
                 />
-                {isDestinationChainDropdownOpen && (
+                {isDestinationChainDropdownOpen && filteredDestinationChains.length > 0 && (
                   <div className={styles.dropdown}>
                     {filteredDestinationChains.map((chain) => (
                       <div
-                        key={chain.chain_name}
+                        key={chain.chain_id}
                         className={styles.dropdownItem}
                         onClick={() => handleDestinationChainChange(chain.chain_name)}
                       >
@@ -344,6 +357,7 @@ const Blap = () => {
                     ))}
                   </div>
                 )}
+
               </div>
               <div className={styles.swapInputDestinationToken} ref={destinationAssetRef}>
                 <input
@@ -354,11 +368,11 @@ const Blap = () => {
                   className={styles.searchInput}
                   onFocus={() => setIsDestinationAssetDropdownOpen(true)}
                 />
-                {isDestinationAssetDropdownOpen && (
+                {isDestinationAssetDropdownOpen && filteredDestinationAssets.length > 0 && (
                   <div className={styles.dropdown}>
                     {filteredDestinationAssets.map((asset) => (
                       <div
-                        key={`${asset.chain_name}-${asset.denom}`}
+                        key={`${asset.denom}`}
                         className={styles.dropdownItem}
                         onClick={() => handleDestinationAssetChange(asset.denom)}
                       >
@@ -367,6 +381,7 @@ const Blap = () => {
                     ))}
                   </div>
                 )}
+
               </div>
             </div>
             <div className={styles.swapInputAmountContainer}>
@@ -375,21 +390,20 @@ const Blap = () => {
                 type="text"
                 placeholder="0.0"
                 value={destinationAmount}
-                onChange={handleDestinationAmountChange}
+                readOnly // Make the input read-only
               />
               {destinationError && <span className={styles.errorText}>{destinationError}</span>}
             </div>
           </div>
         </div>
         <div className={styles.swapAction}>
-          <button onClick={handleRoute} className={styles.routeButton}>Route</button>
+          <button onClick={handleMsgSend} className={styles.msgButton}>Send Msg</button>
+          <button onClick={handleExecuteRoute} className={styles.executeRouteButton}>Execute Route</button>
         </div>
         {routeResponse && (
           <div className={styles.responseContainer}>
             <h3>Route Response</h3>
             <pre>{JSON.stringify(routeResponse, null, 2)}</pre>
-            <button onClick={handleMsgSend} className={styles.msgButton}>Send Msg</button>
-            <button onClick={handleExecuteRoute} className={styles.executeRouteButton}>Execute Route</button>
           </div>
         )}
         {msgResponse && (
