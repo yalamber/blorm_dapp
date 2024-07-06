@@ -122,10 +122,11 @@
     height: 5vh;
   }
 
-  .signOutButton {
+  .signOutButton, .signOutButton:active, .signOutButton:focus, .signOutButton:hover  {
     bottom: 1vh;
     right: 4vw;
     width: 3vw;
+    z-index: 9999;
   }
 }
 

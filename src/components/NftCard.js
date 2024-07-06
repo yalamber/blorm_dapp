@@ -2,12 +2,12 @@ import React from 'react';
 import styles from '../styles/NftCard.module.css';
 import blintChains from '../utils/blintChains.json';
 
-const NftCard = ({ nft }) => {
+const NftCard = ({ nft, width }) => {
   const chainInfo = blintChains[nft.chainId];
   const tokenId = parseInt(nft.tokenId);
 
   return (
-    <div className={styles.card}>
+    <div className={styles.card} style={{ width: `${width}` }}>
       <div className={styles.border}>
         <div className={`${styles.line} ${styles.lineTop}`}>
           <div className={styles.diamond}></div>

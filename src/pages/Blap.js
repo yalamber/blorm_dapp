@@ -2,15 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import styles from '../styles/Blap.module.css';
 import LoadingBlap from '../components/LoadingBlap';
 import * as chainRegistry from 'chain-registry';
-import { SigningStargateClient } from '@cosmjs/stargate';
-// import { SkipRouter, SKIP_API_URL } from '@skip-router/core'
+import { executeRoute } from '../utils/skipUtils.js'; // Import the function directly
+import customChains from '../utils/customChains.json';
+import customAssets from '../utils/customAssets.json'; // Import custom assets
+import { ethers } from 'ethers';
+import * as solanaWeb3 from '@solana/web3.js';
 
 const Blap = () => {
-  /* const SkipClient = new SkipRouter({
-    apiURL: SKIP_API_URL,
-    getCosmosSigner: window.keplr.getOfflineSigner
-  });
-  */
 
   const [showLoading, setShowLoading] = useState(false);
   const [assets, setAssets] = useState([]);
@@ -49,14 +47,13 @@ const Blap = () => {
       try {
         const response = await fetch('https://api.skip.money/v2/info/chains');
         const data = await response.json();
-        const allChains = data.chains.sort((a, b) => a.chain_name.localeCompare(b.chain_name));
+        const allChains = [...data.chains, ...customChains].sort((a, b) => a.chain_name.localeCompare(b.chain_name));
         setChains(allChains);
-        const allAssets = chainRegistry.assets;
-        setAssets(allAssets);
       } catch (error) {
         console.error('Error fetching chains:', error);
       }
     };
+
     fetchChains();
   }, []);
 
@@ -65,13 +62,19 @@ const Blap = () => {
     setSelectedSourceChain(chain);
     setSourceChainSearch(chain.chain_name);
 
-    const matchingAssets = chain.fee_assets.map(asset => {
-      const registryAsset = chainRegistry.assets.find(a => a.base === asset.denom);
-      return registryAsset ? { ...asset, ...registryAsset } : asset;
-    });
+    if (customAssets.chain_to_assets_map[chain.chain_id]) {
+      const matchingAssets = customAssets.chain_to_assets_map[chain.chain_id].assets;
+      setAssets(matchingAssets);
+    } else {
+      const matchingAssets = chain.fee_assets.map(asset => {
+        const registryAsset = chainRegistry.assets.find(a => a.base === asset.denom);
+        return registryAsset ? { ...asset, ...registryAsset } : asset;
+      });
+      setAssets(matchingAssets);
+    }
 
-    setAssets(matchingAssets);
     setIsSourceChainDropdownOpen(false);
+    handleRoute(); // Call handleRoute
   };
 
   const handleSourceAssetChange = (assetBase) => {
@@ -79,6 +82,7 @@ const Blap = () => {
     setSelectedSourceAsset(asset);
     setSourceAssetSearch(asset.denom);
     setIsSourceAssetDropdownOpen(false);
+    handleRoute(); // Call handleRoute
   };
 
   const handleDestinationChainChange = (chainName) => {
@@ -86,13 +90,19 @@ const Blap = () => {
     setSelectedDestinationChain(chain);
     setDestinationChainSearch(chain.chain_name);
 
-    const matchingAssets = chain.fee_assets.map(asset => {
-      const registryAsset = chainRegistry.assets.find(a => a.base === asset.denom);
-      return registryAsset ? { ...asset, ...registryAsset } : asset;
-    });
+    if (customAssets.chain_to_assets_map[chain.chain_id]) {
+      const matchingAssets = customAssets.chain_to_assets_map[chain.chain_id].assets;
+      setAssets(matchingAssets);
+    } else {
+      const matchingAssets = chain.fee_assets.map(asset => {
+        const registryAsset = chainRegistry.assets.find(a => a.base === asset.denom);
+        return registryAsset ? { ...asset, ...registryAsset } : asset;
+      });
+      setAssets(matchingAssets);
+    }
 
-    setAssets(matchingAssets);
     setIsDestinationChainDropdownOpen(false);
+    handleRoute(); // Call handleRoute
   };
 
   const handleDestinationAssetChange = (assetBase) => {
@@ -100,10 +110,12 @@ const Blap = () => {
     setSelectedDestinationAsset(asset);
     setDestinationAssetSearch(asset.denom);
     setIsDestinationAssetDropdownOpen(false);
+    handleRoute(); // Call handleRoute
   };
 
   const handleSourceAmountChange = (event) => {
     setSourceAmount(event.target.value);
+    handleRoute(); // Call handleRoute
   };
 
   const handleDestinationAmountChange = (event) => {
@@ -149,9 +161,11 @@ const Blap = () => {
 
   const handleRoute = async () => {
     if (!selectedSourceAsset || !selectedSourceChain || !selectedDestinationAsset || !selectedDestinationChain) {
-      console.error("Please ensure all selections are made before routing.");
+      // console.error("Please ensure all selections are made before routing.");
       return;
     }
+
+    // console.log('selected options: ', selectedSourceAsset, selectedSourceChain, selectedDestinationAsset, selectedDestinationChain)
 
     const options = {
       method: 'POST',
@@ -173,23 +187,37 @@ const Blap = () => {
       })
     };
 
+    console.log('getting route with: ', options)
     try {
       const response = await fetch('https://api.skip.money/v2/fungible/route', options);
       const data = await response.json();
       setRouteResponse(data); // Save response data in state
 
       if (data.required_chain_addresses) {
-        const fetchedAddresses = await getKeplrAddresses(data.required_chain_addresses);
-        console.log('Addresses from route:', fetchedAddresses);
+        const fetchedAddresses = await getAddresses(data.required_chain_addresses);
         setAddresses(fetchedAddresses); // Save addresses in state
         console.log('Addresses:', fetchedAddresses);
       }
+      setDestinationAmount(data.amount_out);
     } catch (error) {
       console.error('Error fetching route:', error);
     }
   };
 
+  useEffect(() => {
+    if (routeResponse && routeResponse.amount_out) {
+      setDestinationAmount(routeResponse.amount_out);
+    } else {
+      setDestinationAmount("Enter a source amount");
+    }
+  }, [routeResponse]);
+
+  useEffect(() => {
+    handleRoute();
+  }, [selectedSourceAsset, selectedSourceChain, selectedDestinationAsset, selectedDestinationChain, sourceAmount]);
+
   const handleMsgSend = async () => {
+
     if (!routeResponse) {
       console.error("No route response to use for the message send.");
       return;
@@ -223,20 +251,42 @@ const Blap = () => {
     }
   };
 
-  const getKeplrAddresses = async (chainIds) => {
-    if (!window.keplr) {
-      alert("Please install Keplr extension");
-      return;
-    }
-
+  const getAddresses = async (chainIds) => {
     const addresses = {};
+  
     for (const chainId of chainIds) {
-      await window.keplr.enable(chainId);
-      const offlineSigner = window.keplr.getOfflineSigner(chainId);
-      const accounts = await offlineSigner.getAccounts();
-      addresses[chainId] = accounts[0].address;
+      if (chainId === "1" || chainId === "8453") {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        addresses[chainId] = await signer.getAddress();
+      } 
+      else if (chainId === "solana") {
+        // using Phantom Wallet for this example
+        if (window.solana && window.solana.isPhantom) {
+          try {
+            await window.solana.connect();
+            addresses[chainId] = window.solana.publicKey.toString();
+          } catch (error) {
+            console.error("Error connecting to Solana wallet:", error);
+          }
+        } else {
+          alert("Please install the Phantom wallet extension.");
+          return;
+        }
+      } 
+      else {
+        if (!window.keplr) {
+          alert("Please install Keplr extension");
+          return;
+        }
+        await window.keplr.enable(chainId);
+        const offlineSigner = window.keplr.getOfflineSigner(chainId);
+        const accounts = await offlineSigner.getAccounts();
+        addresses[chainId] = accounts[0].address;
+      }
+      console.log('Addresses from getAddresses:', addresses);
     }
-    console.log('Addresses from getKeplrAddresses:', addresses)
+    
     return addresses;
   };
 
@@ -245,15 +295,10 @@ const Blap = () => {
       console.error("No route response to use for the execute route.");
       return;
     }
-
-    /* const response = await SkipClient.executeRoute({
-      routeResponse,
-      addresses,
-      onTransactionCompleted: (chainID, txHash, status) => {
-        console.log(`Route completed on ${chainID} with tx hash: ${txHash} & status: ${status.state}`)
-      }
-    }) */
-  }; 
+    console.log('Executing route with:', msgResponse, addresses)
+    const response = await executeRoute(msgResponse.txs, addresses); // Correctly call the function
+    console.log('Execute Route Response:', response);
+  };
 
   return (
     <div className={styles.container}>
@@ -271,11 +316,11 @@ const Blap = () => {
                   className={styles.searchInput}
                   onFocus={() => setIsSourceChainDropdownOpen(true)}
                 />
-                {isSourceChainDropdownOpen && (
+                {isSourceChainDropdownOpen && filteredSourceChains.length > 0 && (
                   <div className={styles.dropdown}>
                     {filteredSourceChains.map((chain) => (
                       <div
-                        key={chain.chain_name}
+                        key={chain.chain_id}
                         className={styles.dropdownItem}
                         onClick={() => handleSourceChainChange(chain.chain_name)}
                       >
@@ -294,19 +339,20 @@ const Blap = () => {
                   className={styles.searchInput}
                   onFocus={() => setIsSourceAssetDropdownOpen(true)}
                 />
-                {isSourceAssetDropdownOpen && (
+                {isSourceAssetDropdownOpen && filteredSourceAssets.length > 0 && (
                   <div className={styles.dropdown}>
                     {filteredSourceAssets.map((asset) => (
                       <div
-                        key={`${asset.chain_name}-${asset.denom}`}
+                        key={`${asset.denom}`}
                         className={styles.dropdownItem}
                         onClick={() => handleSourceAssetChange(asset.denom)}
                       >
-                        {asset.denom}
+                        {asset.name || asset.denom}
                       </div>
                     ))}
                   </div>
                 )}
+
               </div>
             </div>
             <div className={styles.swapInputAmountContainer}>
@@ -331,11 +377,11 @@ const Blap = () => {
                   className={styles.searchInput}
                   onFocus={() => setIsDestinationChainDropdownOpen(true)}
                 />
-                {isDestinationChainDropdownOpen && (
+                {isDestinationChainDropdownOpen && filteredDestinationChains.length > 0 && (
                   <div className={styles.dropdown}>
                     {filteredDestinationChains.map((chain) => (
                       <div
-                        key={chain.chain_name}
+                        key={chain.chain_id}
                         className={styles.dropdownItem}
                         onClick={() => handleDestinationChainChange(chain.chain_name)}
                       >
@@ -344,6 +390,7 @@ const Blap = () => {
                     ))}
                   </div>
                 )}
+
               </div>
               <div className={styles.swapInputDestinationToken} ref={destinationAssetRef}>
                 <input
@@ -354,19 +401,20 @@ const Blap = () => {
                   className={styles.searchInput}
                   onFocus={() => setIsDestinationAssetDropdownOpen(true)}
                 />
-                {isDestinationAssetDropdownOpen && (
+                {isDestinationAssetDropdownOpen && filteredDestinationAssets.length > 0 && (
                   <div className={styles.dropdown}>
                     {filteredDestinationAssets.map((asset) => (
                       <div
-                        key={`${asset.chain_name}-${asset.denom}`}
+                        key={`${asset.denom}`}
                         className={styles.dropdownItem}
                         onClick={() => handleDestinationAssetChange(asset.denom)}
                       >
-                        {asset.denom}
+                        {asset.name || asset.denom}
                       </div>
                     ))}
                   </div>
                 )}
+
               </div>
             </div>
             <div className={styles.swapInputAmountContainer}>
@@ -375,21 +423,20 @@ const Blap = () => {
                 type="text"
                 placeholder="0.0"
                 value={destinationAmount}
-                onChange={handleDestinationAmountChange}
+                readOnly // Make the input read-only
               />
               {destinationError && <span className={styles.errorText}>{destinationError}</span>}
             </div>
           </div>
         </div>
         <div className={styles.swapAction}>
-          <button onClick={handleRoute} className={styles.routeButton}>Route</button>
+          <button onClick={handleMsgSend} className={styles.msgButton}>Send Msg</button>
+          <button onClick={handleExecuteRoute} className={styles.executeRouteButton}>Execute Route</button>
         </div>
         {routeResponse && (
           <div className={styles.responseContainer}>
             <h3>Route Response</h3>
             <pre>{JSON.stringify(routeResponse, null, 2)}</pre>
-            <button onClick={handleMsgSend} className={styles.msgButton}>Send Msg</button>
-            <button onClick={handleExecuteRoute} className={styles.executeRouteButton}>Execute Route</button>
           </div>
         )}
         {msgResponse && (
