@@ -3,11 +3,11 @@
   min-height: 93vh;
   width: 100vw;
   height: fit-content;
-  overflow: hidden;
   flex-direction: column;
   align-items: center;
   padding-top: 7vh;
   box-sizing: content-box;
+  overflow-y: scroll;
 }
 
 .profileTop {

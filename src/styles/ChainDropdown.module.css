@@ -42,7 +42,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 50%;
     border: 1px solid #ccc;
     background-color: #fff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -55,6 +55,7 @@
   }
   
   .option {
+    width: 100%;
     padding: 10px;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -67,5 +68,9 @@
   @media (max-width: 768px) {
     .dropdownContainer {
       width: 40vw;
+    }
+
+    .options {
+      width: 80%;
     }
   }

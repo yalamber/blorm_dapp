@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import styles from '../styles/Profile.module.css';
 import NftCard from '../components/NftCard';
@@ -8,8 +8,26 @@ import blintChains from '../utils/blintChains.json';
 import Navbar from '../components/Navbar';
 import AuthButton from '../components/AuthButton';
 import editIcon from '../images/edit-pen.png';
+import blop8 from '../utils/Blop8.json';
 
 const Profile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  const checkIfMobile = useCallback(() => {
+      if (typeof window !== 'undefined') {
+          const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+          const isMobileDevice = /android|iphone|ipad|iPod|opera mini|iemobile|wpdesktop/i.test(userAgent) ||
+              window.innerWidth <= 768;
+          setIsMobile(isMobileDevice);
+      }
+  }, []);
+
+  useEffect(() => {
+      checkIfMobile();
+      window.addEventListener('resize', checkIfMobile);
+      return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
   const [chainsWithNfts, setChainsWithNfts] = useState([]);
   const { user, walletAddress, profile, updateUserProfile } = useAuth();
   const [localProfile, setLocalProfile] = useState(profile);
@@ -36,17 +54,15 @@ const Profile = () => {
     for (const chainId in blintChains) {
       const chain = blintChains[chainId];
       const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
+      const abi = blop8.abi;
       const contract = new ethers.Contract(
         chain.contractAddress,
-        [
-          'function getTokensOfOwner(address owner) view returns (uint256[] memory)',
-          'function tokenURI(uint256 tokenId) view returns (string memory)'
-        ],
+        abi,
         provider
       );
   
       try {
-        const tokens = await contract.getTokensOfOwner(walletAddress);
+        const tokens = await contract.getTokensByOwner(walletAddress);
         const nfts = await Promise.all(
           tokens.map(async (token) => {
             const tokenId = token.toString();
@@ -214,9 +230,16 @@ const Profile = () => {
             <div className={styles.noNftsMessage}>No NFTs found.</div>
           ) : (
             <div className={styles.nftGrid}>
-              {nftData.map((nft, index) => (
-                <NftCard key={index} nft={nft} width={28}/>
-              ))}
+              {isMobile ? (
+                nftData.map((nft) => (
+                  <NftCard key={nft.tokenId} nft={nft} width={'80%'} />
+                ))
+              ) : (
+                nftData.map((nft) => (
+                  <NftCard key={nft.tokenId} nft={nft} width={'25vw'} />
+                ))
+              )
+            }
             </div>
           )
         )}

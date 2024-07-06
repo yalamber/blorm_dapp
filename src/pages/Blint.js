@@ -1,11 +1,11 @@
-import React, { useLayoutEffect, useState, useRef, useEffect, useMemo } from 'react';
+import React, { useLayoutEffect, useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import BlintDisplayMessage from '../components/BlintDisplayMessage';
 import {
     tensor,
     sub,
     norm,
     dispose
-  } from '@tensorflow/tfjs-core';  
+} from '@tensorflow/tfjs-core';
 import predefinedColors from '../utils/predefinedColors.json';
 import colorEmbeddings from '../utils/colorEmbeddings.json';
 import styles from '../styles/Blint.module.css';
@@ -59,15 +59,14 @@ const rgbArrayToHex = (rgb) => {
 const Blint = () => {
     const [isMobile, setIsMobile] = useState(false);
 
-    const checkIfMobile = () => {
-        // Check for mobile user agents or screen width
+    const checkIfMobile = useCallback(() => {
         if (typeof window !== 'undefined') {
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             const isMobileDevice = /android|iphone|ipad|iPod|opera mini|iemobile|wpdesktop/i.test(userAgent) ||
-                window.innerWidth <= 768; // You can adjust this width for your specific needs
+                window.innerWidth <= 768;
             setIsMobile(isMobileDevice);
         }
-    };
+    }, []);
 
     useEffect(() => {
         checkIfMobile();
@@ -85,23 +84,30 @@ const Blint = () => {
     }, []);
 
 
-    const resizeCanvas = () => {
+    const resizeCanvas = useCallback(() => {
         const isMobileDevice = window.innerWidth <= 768;
         setCanvasSize(isMobileDevice ? 200 : 400);
-    };
+    }, []);
+
 
     const [bannerSize, setBannerSize] = useState('5vw');
     const [marginSize, setMarginSize] = useState('.35rem');
     const [bannerRows, setBannerRows] = useState(2);
 
-    const resizeBanner = () => {
+    const resizeBanner = useCallback(() => {
         const isMobileDevice = window.innerWidth <= 768;
         setBannerSize(isMobileDevice ? '12.5vw' : '5vw');
         setMarginSize(isMobileDevice ? '.35rem' : '.35rem');
-    }
+    }, []);
 
-    const OpepenGridTop =  <OpepenGrid rows={bannerRows} imageSize={bannerSize} margin={marginSize} />;
-    const OpepenGridBottom = <OpepenGrid rows={bannerRows} imageSize={bannerSize} margin={marginSize}/>;
+
+    const OpepenGridTop = useMemo(() => (
+        <OpepenGrid rows={bannerRows} imageSize={bannerSize} margin={marginSize} />
+    ), [bannerRows, bannerSize, marginSize]);
+
+    const OpepenGridBottom = useMemo(() => (
+        <OpepenGrid rows={bannerRows} imageSize={bannerSize} margin={marginSize} />
+    ), [bannerRows, bannerSize, marginSize]);
 
     const { user, walletAddress, profile, handleLogin } = useAuth();
     const [showModal, setShowModal] = useState(false);
@@ -111,29 +117,29 @@ const Blint = () => {
 
     const [loading, setLoading] = useState(false);
 
-    const getClosestColor = async (inputColor) => {
+    const getClosestColor = useCallback(async (inputColor) => {
         if (!inputColor) {
             return rgbArrayToHex([255, 255, 255]);  // Default color if no input
         }
-    
+
         // Check if the color exists in the predefined colors JSON
         if (predefinedColors[inputColor]) {
             const colorRgb = predefinedColors[inputColor].rgb;
             const randomShade = sampleRandomShade(colorRgb);
             return rgbArrayToHex(randomShade);
         }
-    
+
         // Implement typo correction using FuzzySet
         const fuzzyColors = FuzzySet(Object.keys(predefinedColors));
         const fuzzyResult = fuzzyColors.get(inputColor);
         if (fuzzyResult && fuzzyResult[0][0] > 0.7) { // Adjust threshold as needed
             inputColor = fuzzyResult[0][1];
         }
-    
+
         // If the color doesn't exist, find the closest match
         if (inputColor && typeof inputColor === 'string') {
             const inputEmbeddingArray = colorEmbeddings[inputColor];
-    
+
             let minDistance = Infinity;
             let bestMatch = null;
             for (const [name, embedding] of Object.entries(colorEmbeddings)) {
@@ -143,11 +149,11 @@ const Blint = () => {
                         try {
                             const inputTensor = tensor(inputEmbeddingArray);
                             const embeddingTensor = tensor(embedding);
-    
+
                             const distance = norm(sub(inputTensor, embeddingTensor)).dataSync()[0];
-    
+
                             dispose([inputTensor, embeddingTensor]); // Dispose tensors
-    
+
                             if (distance < minDistance) {
                                 minDistance = distance;
                                 bestMatch = name;
@@ -158,19 +164,19 @@ const Blint = () => {
                     }
                 }
             }
-    
+
             if (bestMatch) {
                 const colorRgb = predefinedColors[bestMatch].rgb;
                 const randomShade = sampleRandomShade(colorRgb);
                 return rgbArrayToHex(randomShade);
             }
         }
-    
+
         return rgbArrayToHex([255, 255, 255]);  // Default color if no match found
-    };
-    
-    
-    
+    });
+
+
+
 
     const [tokenUrl, setTokenUrl] = useState('');
 
@@ -241,18 +247,20 @@ const Blint = () => {
     };
 
 
-    const handleInputBlur = (event, callback) => {
+    const handleInputBlur = useCallback((event, callback) => {
         const input = event.target;
         callback(input.value);
         adjustInputWidth(input);
-    };
+    }, []);
 
-    const handleChangeBackgroundColor = async (color) => {
+
+    const handleChangeBackgroundColor = useCallback(async (color) => {
         const closestColor = await getClosestColor(color);
         setBackgroundColor(closestColor);
-    };
+    }, [getClosestColor]
+    );
 
-    const handleChangeGradientColor = async (type, color) => {
+    const handleChangeGradientColor = useCallback(async (type, color) => {
         const closestColor = await getClosestColor(color);
         if (type === 'primary') {
             setGradientColors((prevColors) => ({
@@ -265,7 +273,11 @@ const Blint = () => {
                 secondary: closestColor,
             }));
         }
-    };
+    }, [getClosestColor]);
+
+    const handleChainSelection = useCallback((chain) => {
+        setSelectedChain(chain);
+    }, []);
 
     const toggleVisibility = (layerId) => {
         setVisibility((prevVisibility) => ({
@@ -487,10 +499,6 @@ const Blint = () => {
     const [openseaURL, setOpenseaURL] = useState('');
     const [selectedChain, setSelectedChain] = useState('');
 
-    const handleChainSelection = (chain) => {
-        setSelectedChain(chain);
-    };
-
     const clearMessage = (index) => {
         setDisplayMessage((prevMessages) => prevMessages.filter((_, i) => i !== index));
     };
@@ -541,10 +549,8 @@ const Blint = () => {
             setOpenseaURL(url);
             setTokenUrl(url);
             setLoading(false);
-            setShowCongrats(true);
-
-            // Update nft state with tokenId and metadata
             setNft({ metadata: updatedMetadata, tokenId, chain: selectedChain.name, chainId: selectedChain.chainID });
+            setShowCongrats(true);
         } catch (error) {
             setLoading(false);
             console.error('Uploading and minting:', error);
@@ -682,9 +688,7 @@ const Blint = () => {
                     </div>
                 </div>
             )}
-            <div className={styles.bottomContainer}>
-                {OpepenGridBottom}
-            </div>
+            {OpepenGridBottom}
         </div>
 
 
