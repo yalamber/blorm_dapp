@@ -8,6 +8,19 @@ import mobileBg from '../images/mobile-bg.png';
 import xLogo from '../images/x.png';
 
 const Home = () => {
+    const [frameIndex, setFrameIndex] = useState(1);
+    const totalFrames = 167; // Adjust this to match the number of frames you have
+    const frameRate = 100; // Adjust this to control the speed (in milliseconds)
+  
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setFrameIndex((prevFrameIndex) => (prevFrameIndex % totalFrames) + 1);
+      }, frameRate);
+  
+      return () => clearInterval(interval);
+    }, [totalFrames, frameRate]);
+
+    
     const [isMobile, setIsMobile] = useState(false);
 
     const checkIfMobile = () => {
@@ -45,7 +58,11 @@ const Home = () => {
                     </Link>
                 </div>
                 <div className={styles.center}>
-                    <img className={styles.centerImage} src={logo} alt="center logo"></img>
+                    <img
+                        src={`/blorm-logo-frames/frame${frameIndex}.png`}
+                        alt="Animated Logo"
+                        className={styles.centerImage}
+                    />
                     <Link to="/blint" className={styles.actionButton}>BLINT</Link>
                 </div>
             </div>
@@ -71,7 +88,11 @@ const Home = () => {
                 <Link to="/blint" className={styles.actionButton}>BLINT</Link>
             </div>
             <div className={styles.center}>
-                <img className={styles.centerImage} src={logo} alt="center logo"></img>
+                <img
+                    src={`/blorm-logo-frames/frame${frameIndex}.png`}
+                    alt="Animated Logo"
+                    className={styles.centerImage}
+                />
                 <span className={styles.centerText}>B L O R M</span>
             </div>
         </div>
