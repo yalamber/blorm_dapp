@@ -1,6 +1,11 @@
 import React, { useLayoutEffect, useState, useRef, useEffect, useMemo } from 'react';
 import BlintDisplayMessage from '../components/BlintDisplayMessage';
-import * as tf from '@tensorflow/tfjs';
+import {
+    tensor,
+    sub,
+    norm,
+    dispose
+  } from '@tensorflow/tfjs-core';  
 import predefinedColors from '../utils/predefinedColors.json';
 import colorEmbeddings from '../utils/colorEmbeddings.json';
 import styles from '../styles/Blint.module.css';
@@ -74,6 +79,7 @@ const Blint = () => {
 
     useLayoutEffect(() => {
         resizeCanvas(); // Set initial canvas size
+        resizeBanner(); // Set initial banner size
         window.addEventListener('resize', resizeCanvas);
         return () => window.removeEventListener('resize', resizeCanvas);
     }, []);
@@ -84,6 +90,18 @@ const Blint = () => {
         setCanvasSize(isMobileDevice ? 200 : 400);
     };
 
+    const [bannerSize, setBannerSize] = useState('5vw');
+    const [marginSize, setMarginSize] = useState('.35rem');
+    const [bannerRows, setBannerRows] = useState(2);
+
+    const resizeBanner = () => {
+        const isMobileDevice = window.innerWidth <= 768;
+        setBannerSize(isMobileDevice ? '12.5vw' : '5vw');
+        setMarginSize(isMobileDevice ? '.35rem' : '.35rem');
+    }
+
+    const OpepenGridTop =  <OpepenGrid rows={bannerRows} imageSize={bannerSize} margin={marginSize} />;
+    const OpepenGridBottom = <OpepenGrid rows={bannerRows} imageSize={bannerSize} margin={marginSize}/>;
 
     const { user, walletAddress, profile, handleLogin } = useAuth();
     const [showModal, setShowModal] = useState(false);
@@ -97,25 +115,25 @@ const Blint = () => {
         if (!inputColor) {
             return rgbArrayToHex([255, 255, 255]);  // Default color if no input
         }
-
+    
         // Check if the color exists in the predefined colors JSON
         if (predefinedColors[inputColor]) {
             const colorRgb = predefinedColors[inputColor].rgb;
             const randomShade = sampleRandomShade(colorRgb);
             return rgbArrayToHex(randomShade);
         }
-
+    
         // Implement typo correction using FuzzySet
         const fuzzyColors = FuzzySet(Object.keys(predefinedColors));
         const fuzzyResult = fuzzyColors.get(inputColor);
         if (fuzzyResult && fuzzyResult[0][0] > 0.7) { // Adjust threshold as needed
             inputColor = fuzzyResult[0][1];
         }
-
+    
         // If the color doesn't exist, find the closest match
         if (inputColor && typeof inputColor === 'string') {
             const inputEmbeddingArray = colorEmbeddings[inputColor];
-
+    
             let minDistance = Infinity;
             let bestMatch = null;
             for (const [name, embedding] of Object.entries(colorEmbeddings)) {
@@ -123,14 +141,13 @@ const Blint = () => {
                     // Ensure the shapes are compatible before subtraction
                     if (inputEmbeddingArray.length === embedding.length) {
                         try {
-                            const inputTensor = tf.tensor(inputEmbeddingArray);
-                            const embeddingTensor = tf.tensor(embedding);
-
-                            const distance = tf.norm(tf.sub(inputTensor, embeddingTensor)).dataSync()[0];
-
-                            inputTensor.dispose(); // Dispose of the input tensor
-                            embeddingTensor.dispose(); // Dispose of the embedding tensor
-
+                            const inputTensor = tensor(inputEmbeddingArray);
+                            const embeddingTensor = tensor(embedding);
+    
+                            const distance = norm(sub(inputTensor, embeddingTensor)).dataSync()[0];
+    
+                            dispose([inputTensor, embeddingTensor]); // Dispose tensors
+    
                             if (distance < minDistance) {
                                 minDistance = distance;
                                 bestMatch = name;
@@ -141,16 +158,19 @@ const Blint = () => {
                     }
                 }
             }
-
+    
             if (bestMatch) {
                 const colorRgb = predefinedColors[bestMatch].rgb;
                 const randomShade = sampleRandomShade(colorRgb);
                 return rgbArrayToHex(randomShade);
             }
         }
-
+    
         return rgbArrayToHex([255, 255, 255]);  // Default color if no match found
     };
+    
+    
+    
 
     const [tokenUrl, setTokenUrl] = useState('');
 
@@ -531,12 +551,6 @@ const Blint = () => {
             setDisplayMessage([...displayMessage, { message: 'There was an issue with uploading and minting, Please try again.', type: 'error' }]);
         }
     };
-
-
-    const testOptions = ['Option 1', 'Option 2', 'Option 3'];
-
-    const OpepenGridTop = useMemo(() => <OpepenGrid rows={2} imageSize={80} />, []);
-    const OpepenGridBottom = useMemo(() => <OpepenGrid rows={2} imageSize={80} />, []);
 
     const handleClose = () => {
         setDisplayMessage([]);

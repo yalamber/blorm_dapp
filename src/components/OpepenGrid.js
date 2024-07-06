@@ -18,7 +18,7 @@ const images = [
   image7, image8, image9, image10, image11, image12
 ];
 
-const OpepenGrid = ({ rows, imageSize }) => {
+const OpepenGrid = ({ rows, imageSize, margin }) => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
@@ -31,7 +31,8 @@ const OpepenGrid = ({ rows, imageSize }) => {
     const imageArray = [];
     for (let i = 0; i < rows; i++) {
       const rowImages = [];
-      const numImagesInRow = Math.floor(windowWidth / (imageSize + 12));
+      const imageSizeInPx = parseFloat(imageSize.replace('vw', '')) * windowWidth / 100;
+      const numImagesInRow = Math.floor(windowWidth / (imageSizeInPx + 12));
       for (let j = 0; j < numImagesInRow; j++) {
         const randomIndex = Math.floor(Math.random() * images.length);
         const direction = Math.random() > 0.5 ? 'clockwise' : 'counterclockwise';
@@ -60,10 +61,10 @@ const OpepenGrid = ({ rows, imageSize }) => {
               alt="Grid"
               className={`rotate-${image.direction}`}
               style={{
-                width: `${imageSize}px`,
+                width: `${imageSize}`,
                 height: 'auto',
                 transform: `rotate(${image.rotation}deg)`,
-                margin: '6px',
+                margin: `${margin}`,
               }}
             />
           ))}
