@@ -144,7 +144,7 @@
 
 
 .canvasContainer {
-    height: fit-content;
+    height: 50vh;
     margin-top: 5vh;
     display: flex;
     justify-content: center;
@@ -155,9 +155,9 @@
 }
 
 .canvasInner {
-    width: 400px;
+    width: 40vh;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
-    height: 400px;
+    height: 40vh;
 }
 
 .buttonsContainer {

@@ -1,123 +1,136 @@
+/* Blap.module.css */
+
 .container {
-    display: flex;
-    min-height: 100vh;
-    width: 100vw;
-    height: fit-content;
-    position: relative;
-    overflow: hidden;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: fit-content;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e1e1e, #3a3a3a);
+  padding: 20px;
+  box-sizing: border-box;
+  color: white;
+
 }
 
-@keyframes rainbow {
-    0%{color: darkred;}
-    14%{color: darkorange;}
-    28%{color: gold;}
-    42%{color: darkgreen;}
-    57%{color: navy;}
-    71%{color: indigo;}
-    85%{color: purple;}
-    100%{color: darkred;}
-  }
-  
-
-.background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -999;
-    white-space: pre-wrap;
-    background: white;
-    /* To respect newline characters */
-    /* Optional background color for visibility */
-    /* Optional text color */
-    font-family: monospace;
-    /* ASCII art looks better with a monospace font */
-    text-align: center;
-    overflow: hidden;
-    display: flex;
-    /* Use flexbox to center the content */
-    align-items: center;
-    /* Center vertically */
-    justify-content: center;
-    /* Center horizontally */
+.swapContainer {
+  background: #2c2c2c;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  margin: 20px;
+  padding: 20px;
+  box-sizing: border-box;
+  width: 50vw;
 }
 
-.pre {
-    animation: rainbow 10s linear infinite;
-    background: linear-gradient(to bottom right, darkred, darkorange, gold, darkgreen, navy, indigo, purple, darkred);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-family: monospace;
-    color: black;
+.swap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.titleContainer{
-    display: flex;
-    width: 100%;
-    text-align: center;
-    align-items: center;
-    justify-content: center;
+.swapInputSourceContainer, .swapInputDestinationContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
 }
 
-.title {
-    font-size: 7rem;
-    font-weight: bolder;
-    margin: 0;
-    color: white;
+.swapInputDropdownContainer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  position: relative;
 }
 
-Link {
-    text-decoration: none;
-    color: black;
+.swapSectionInputSourceChain, .swapSectionInputSourceToken, .swapInputDestinationChain, .swapInputDestinationToken {
+  flex: 1;
+  background: #3a3a3a;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 14px;
+  color: #bbb;
 }
 
-.actionButton {
-    margin-top: 65vh;
-    align-items: center;
-    appearance: none;
-    background-color: #222;
-    border-radius: 15px;
-    border-width: 0;
-    box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px,rgba(45, 35, 66, 0.3) 0 7px 13px -3px,#D6D6E7 0 -3px 0 inset;
-    box-sizing: border-box;
-    color: black;
-    background: white;
-    cursor: pointer;
-    display: inline-flex;
-    font-family: "Chakra Petch",monospace;
-    height: 48px;
-    justify-content: center;
-    line-height: 1;
-    list-style: none;
-    overflow: hidden;
-    position: relative;
-    text-align: left;
-    text-decoration: none;
-    transition: box-shadow .15s,transform .15s;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    white-space: nowrap;
-    will-change: box-shadow,transform;
-    font-size: 18px;
-    font-weight: bold;
-    width: 15vw;
-  }
-  
-  .actionButton:focus, .chainSelect:focus {
-    box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
-  }
-  
-  .actionButton:hover, .chainSelect:hover {
-    box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
-    transform: translateY(-2px);
-  }
-  
-  .actionButton:active, .chainSelect:active{
-    box-shadow: #D6D6E7 0 3px 7px inset;
-    transform: translateY(2px);
-  }
-  
+.searchInput {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #555;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #ddd;
+  background: #3a3a3a;
+  transition: border 0.3s ease;
+}
+
+.searchInput:focus {
+  border-color: #7a7a7a;
+  outline: none;
+}
+
+.dropdown {
+  position: absolute;
+  top: 60px;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #3a3a3a;
+  border: 1px solid #555;
+  border-radius: 8px;
+  z-index: 1000;
+}
+
+.dropdownItem {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.dropdownItem:hover {
+  background: #4a4a4a;
+}
+
+.swapInputAmountContainer {
+  display: flex;
+  align-items: center;
+}
+
+.swapInputAmount {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #555;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #ddd;
+  background: #3a3a3a;
+  transition: border 0.3s ease;
+}
+
+.swapInputAmount:focus {
+  border-color: #7a7a7a;
+  outline: none;
+}
+
+.swapAction {
+  background: #4a90e2;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.swapAction:hover {
+  background: #357ABD;
+}
+
+.errorText {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}

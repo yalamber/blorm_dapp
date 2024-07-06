@@ -1,0 +1,59 @@
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  height: fit-content;
+  overflow: hidden;
+  flex-direction: column;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0.90;
+  pointer-events: none;
+}
+
+@keyframes rainbow {
+  0%{color: darkred;}
+  14%{color: darkorange;}
+  28%{color: gold;}
+  42%{color: darkgreen;}
+  57%{color: navy;}
+  71%{color: indigo;}
+  85%{color: purple;}
+  100%{color: darkred;}
+}
+
+.background {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 100vh;
+  z-index: -999;
+  white-space: pre-wrap;
+  background: white;
+  font-family: monospace;
+  text-align: center;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pre {
+  animation: rainbow 10s linear infinite;
+  background: linear-gradient(to bottom right, darkred, darkorange, gold, darkgreen, navy, indigo, purple, darkred);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: monospace;
+  color: black;
+}
+
+@media (max-width: 768px) {
+  .pre, .background {
+      font-size: 1.5rem;
+  }
+}
