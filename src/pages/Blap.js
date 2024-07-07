@@ -11,6 +11,12 @@ import * as solanaWeb3 from '@solana/web3.js';
 const Blap = () => {
 
   const [showLoading, setShowLoading] = useState(false);
+
+  const [txHash, setTxHash] = useState('');
+  const [chainId, setChainId] = useState('');
+  const [trackingResponse, setTrackingResponse] = useState(null);
+  const [statusResponse, setStatusResponse] = useState(null);
+
   const [assets, setAssets] = useState([]);
   const [chains, setChains] = useState([]);
   const [selectedSourceChain, setSelectedSourceChain] = useState(null);
@@ -33,8 +39,8 @@ const Blap = () => {
   const [isDestinationChainDropdownOpen, setIsDestinationChainDropdownOpen] = useState(false);
   const [isDestinationAssetDropdownOpen, setIsDestinationAssetDropdownOpen] = useState(false);
 
-  const [routeResponse, setRouteResponse] = useState(null); // State variable for storing route response
-  const [msgResponse, setMsgResponse] = useState(null); // State variable for storing msg response
+  const [routeResponse, setRouteResponse] = useState("Enter all fields to find a route."); // State variable for storing route response
+  const [msgResponse, setMsgResponse] = useState("Submit a transaction to show messages."); // State variable for storing msg response
   const [addresses, setAddresses] = useState({}); // State variable for storing addresses
 
   const sourceChainRef = useRef(null);
@@ -162,6 +168,7 @@ const Blap = () => {
   const handleRoute = async () => {
     if (!selectedSourceAsset || !selectedSourceChain || !selectedDestinationAsset || !selectedDestinationChain) {
       // console.error("Please ensure all selections are made before routing.");
+      setRouteResponse("Enter all fields to find a route.");
       return;
     }
 
@@ -253,13 +260,13 @@ const Blap = () => {
 
   const getAddresses = async (chainIds) => {
     const addresses = {};
-  
+
     for (const chainId of chainIds) {
       if (chainId === "1" || chainId === "8453") {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         addresses[chainId] = await signer.getAddress();
-      } 
+      }
       else if (chainId === "solana") {
         // using Phantom Wallet for this example
         if (window.solana && window.solana.isPhantom) {
@@ -273,7 +280,7 @@ const Blap = () => {
           alert("Please install the Phantom wallet extension.");
           return;
         }
-      } 
+      }
       else {
         if (!window.keplr) {
           alert("Please install Keplr extension");
@@ -286,19 +293,57 @@ const Blap = () => {
       }
       console.log('Addresses from getAddresses:', addresses);
     }
-    
+
     return addresses;
   };
 
   const handleExecuteRoute = async () => {
-    if (!routeResponse) {
-      console.error("No route response to use for the execute route.");
-      return;
+    try {
+      if (!routeResponse || !addresses || !msgResponse) {
+        console.error("No route response to use for the execute route.");
+        return;
+      }
+      console.log('Executing route with:', msgResponse, addresses)
+      const response = await executeRoute(msgResponse.txs, addresses); // Correctly call the function
+      console.log('Execute Route Response:', response);
+      console.log('tx hash: ', response.tx_hash);
+      setTxHash(response.tx_hash);
+    } catch (error) {
+      console.error('Error executing route:', error);
     }
-    console.log('Executing route with:', msgResponse, addresses)
-    const response = await executeRoute(msgResponse.txs, addresses); // Correctly call the function
-    console.log('Execute Route Response:', response);
   };
+
+  const handleTrackTransaction = async () => {
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tx_hash: txHash, chain_id: chainId })
+    };
+
+    try {
+      const response = await fetch('https://api.skip.money/v2/tx/track', options);
+      const data = await response.json();
+      setTrackingResponse(data);
+    } catch (error) {
+      console.error('Error tracking transaction:', error);
+    }
+  };
+
+  const handleGetTransactionStatus = async () => {
+    const url = new URL('https://api.skip.money/v2/tx/status');
+    const txHashEncoded = ethers.hexlify(txHash);
+    url.searchParams.append('tx_hash', txHashEncoded);
+    url.searchParams.append('chain_id', chainId);
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      setStatusResponse(data);
+    } catch (error) {
+      console.error('Error fetching transaction status:', error);
+    }
+  };
+
 
   return (
     <div className={styles.container}>
@@ -433,18 +478,48 @@ const Blap = () => {
           <button onClick={handleMsgSend} className={styles.msgButton}>Send Msg</button>
           <button onClick={handleExecuteRoute} className={styles.executeRouteButton}>Execute Route</button>
         </div>
-        {routeResponse && (
-          <div className={styles.responseContainer}>
-            <h3>Route Response</h3>
-            <pre>{JSON.stringify(routeResponse, null, 2)}</pre>
+      </div>
+      <div className={styles.rightContainer}>
+        <div className={styles.routeResponse}>
+          <h2>Route Response</h2>
+          <pre>{JSON.stringify(routeResponse, null, 2)}</pre>
+        </div>
+        <div className={styles.msgResponse}>
+          <h2>Msg Response</h2>
+          <pre>{JSON.stringify(msgResponse, null, 2)}</pre>
+        </div>
+        <div className={styles.addresses}>
+          <h2>Addresses</h2>
+          <pre>{JSON.stringify(addresses, null, 2)}</pre>
+        </div>
+        <div className={styles.trackContainer}>
+          <h2>Track Transaction</h2>
+          <input
+            type="text"
+            placeholder="Enter Transaction Hash"
+            value={txHash}
+            onChange={(e) => setTxHash(e.target.value)}
+            className={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Enter Chain ID"
+            value={chainId}
+            onChange={(e) => setChainId(e.target.value)}
+            className={styles.input}
+          />
+          <button onClick={handleTrackTransaction} className={styles.trackButton}>Track Transaction</button>
+          <button onClick={handleGetTransactionStatus} className={styles.statusButton}>Get Status</button>
+          <div className={styles.response}>
+            <h3>Tracking Response</h3>
+            <pre>{JSON.stringify(trackingResponse, null, 2)}</pre>
           </div>
-        )}
-        {msgResponse && (
-          <div className={styles.responseContainer}>
-            <h3>Msg Response</h3>
-            <pre>{JSON.stringify(msgResponse, null, 2)}</pre>
+          <div className={styles.response}>
+            <h3>Status Response</h3>
+            <pre>{JSON.stringify(statusResponse, null, 2)}</pre>
           </div>
-        )}
+        </div>
+
       </div>
     </div>
   );
