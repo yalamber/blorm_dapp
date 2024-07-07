@@ -101,6 +101,9 @@ async function executeSolanaTx(tx) {
 
 async function executeRoute(txs, addresses) {
     const results = [];
+    if (!txs || txs.length === 0) {
+        throw new Error('No transactions to execute');
+    }
     for (const tx of txs) {
         console.log('Executing transaction:', tx);
         if (tx.cosmos_tx) {

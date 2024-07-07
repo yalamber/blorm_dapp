@@ -2,7 +2,7 @@
 
 .container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   height: fit-content;
@@ -11,7 +11,18 @@
   padding: 20px;
   box-sizing: border-box;
   color: white;
+}
 
+.rightContainer {
+  display: flex;
+  flex-direction: column;
+  width: 40vw;
+  background: #2c2c2c;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  margin: 20px;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .swapContainer {
@@ -21,7 +32,8 @@
   margin: 20px;
   padding: 20px;
   box-sizing: border-box;
-  width: 50vw;
+  width: 40vw;
+  height: fit-content;
 }
 
 .swap {
@@ -133,4 +145,28 @@
   color: red;
   font-size: 12px;
   margin-top: 5px;
+}
+
+.trackContainer {
+  margin: 20px 0;
+}
+
+.input {
+  margin: 5px;
+  padding: 10px;
+  width: 100%;
+}
+
+.trackButton, .statusButton {
+  margin: 10px 5px;
+  padding: 10px 20px;
+}
+
+.response {
+  margin-top: 20px;
+}
+
+.response pre {
+  background-color: #f0f0f0;
+  padding: 10px;
 }
